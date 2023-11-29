@@ -1,0 +1,535 @@
+[toc]
+
+# Python爬虫
+
+爬虫就是**用程序模拟浏览器的行为**，发送请求给服务器，获取网页的内容，解析网页数据，提取信息并保存。
+
+## 前置知识
+
+1. 我们爬虫学习的整体框架是：
+
+   1. 获取网站资源：`requests`，`httpx`，`playwright`
+   2. 解析（parse）和处理（process）：`beautifulsoup`，`selectolax`
+   3. 加载（load）和提取（extract）：`txt`，`json`，`MySQL`，`MongoDB`
+
+   以上工作管道（pipeline）也可以由`scrapy`框架完成。
+
+   关于爬取的资源，最常见的是HTML代码，但有些网页可能返回的是JSON字符串（其中API接口大多采用这种形式）。网页中还包含各种二进制数据，如图片、视频和音频等。除了上述数据，网页中还有各种扩展名文件，如CSS，JavaScript和配置文件等。
+
+2. URL（Universal Resource Locator）
+
+   统一资源定位符。我们通过一个链接，即URL，从互联网中找到某个资源。URL的资本组成格式如下，其中中括号部分不是必要的：
+
+   `scheme://[username:password@]hostname[:port][/path][;parameters][?query][#fragment]`
+
+   - `scheme`：协议，又常常被称作`protocol`。常用的有：`http`，`https`。
+   - `username`，`password`：在某些情况下URL需要提供用户名和密码才能访问，URL大概是这样的：`https://admin:admin@ssr3.scrape.center`
+   - `hostname`：主机地址，它可以是域名`www.baidu.com`或者IP地址`8.8.8.8`。
+   - `port`：端口。这是**服务器**设定的服务端口。有些URL没有端口信息，这是因为使用了默认的端口。例如http协议的默认端口为80，https协议的默认端口为443。
+   - `path`：路径，指的是网络资源在服务器中的指定地址。
+   - `parameters`：参数，用来指定访问某个资源时的附加信息，但由于现在`parameters`用的很少，所以现在人们常常把`query`的部分称作参数，并进行混用，但是严格来说，`parameters`是跟在`;`符号后面的。
+   - `query`：查询，用来查询某类资源，如果有多个查询，则用`&`分隔开。这是常见的，例如：`https://www.baidu.com/?wd=nba&ie=utf-8`。我们在GET设置请求参数时，实际上设置的是这个。
+   - `fragment`：片段，它是对资源描述的部分补充，可以理解为资源内部的书签。
+
+3. 关于HTTP（Hyper Text Transfer Protocol）的几个特征：
+
+   1. HTTP是**无连接的**：无连接的含义是限制每次连接只处理一个请求（request）。服务器（server）处理完客户（client）的请求，并收到客户的应答后，即断开连接采用这种方式可以节省传输时间。
+   2. HTTP是**媒体独立的**：这意味着，只要客户端和服务器知道如何处理数据内容，任何类型的数据都可以通过HTTP发送。客户端以及服务器指定使用适合的MIME-type内容类型。
+   3. HTTP是**无状态的**（stateless）：无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传。这样可能导致每次连接传送的数据量增大，另一方面，在服务器不需要先前信息时，它的应答就比较快。但实际上客户端和服务器的数据交换是“有状态的（stateful）”。客户端向服务器发送账号密码，然后服务器返回建立好的cookie，该cookie被存储在用户的本地中（local storage）。之后客户端再发送请求时会带上该cookie，服务器就能识别该cookie并允许操作，这样就实现了一种表面上的有记忆。
+
+   HTTP和HTTPS（Hyper Transfer Protocol over Secure Socket Layer）都是网络协议，HTTPS可以理解为HTTP的安全版，现在更多的网站和APP正在朝着HTTPS的方向发展。
+
+4. 用户代理（user-agent）
+
+   用户代理实际上就是代表客户用以访问网络资源的软件（或者说“中介”）。它发起请求并引起服务器响应，同时解释（interpret）响应内容并将其呈现（render）给用户。不同的用户代理类型会有不同的呈现级别和类型。常见的用户代理就是浏览器。
+
+5. HTTP动词（HTTP verbs）/ 请求方法（Request Method）
+
+   1. GET：`retrieve a resource`
+   2. POST：`create a new resource`。POST请求大多是在提交表单时发起，相比于GET请求中的参数包含在URL里面，数据可以在URL中看到，POST请求的UTL不会包含这些数据，数据都是通过表单形式传输，会包含在请求体中。
+   3. PUT：`update resource`
+   4. DELETE：`delete a resource`
+
+6. HTTP状态代码（HTTP status code）
+
+   客户端在发送请求后，服务器会给予客户端响应：是如何处理客户端发送的请求的。于是状态代码就会与每个响应一起发送给客户端。状态代码由三个数字组成，其中第一个数字是general category，第二三个数字是sub-category，以及even more specific sub-category。通常状态代码后面还会有一个原因短语：
+
+   - `1xx`：信息性响应（informational responses），表示请求还在进行中。
+   - `2xx`：状态性响应（status responses），表示请求已经成功了。
+     - `201`：创建成功（Created）
+     - `204`：没有内容（No Content）
+   - `3xx`：重定向响应（redirection responses），表明请求的资源已经被移动。
+     - `301`：永久移动（Move Permanently）
+     - `302`：临时移动（Found）
+   - `4xx`：用户端错误响应（client error responses）
+     - `404`：未找到（Not Found）
+     - `403`：客户端禁止访问（Forbidden）
+   - `5xx`：服务器错误响应（server error responses）
+     - `500`：内部错误（Internal Server Error）
+     - `502`：网关错误（Bad Gateway）
+
+   在 python 的 requests 库中，可以直接查询这些状态码：
+
+   ```py
+   import requests as r
+   print(r.codes.ok)			 # 200
+   print(r.codes.not_found)	  # 404
+   ```
+
+7. HTTP头部（HTTP Headers）
+
+   HTTP协议是**可扩展的**，这是通过头部体现的。HTTP头部包括请求头和响应头。
+
+   - 请求头
+
+     我们可以通过使用头部来说明服务器要使用的附加信息，==不过是否选择忽略头部还是选择以某种特殊方式解释头部，这都取决于服务器==。
+
+     1. `User-Agent`头部，服务器可以了解发出请求的客户端类型，如浏览器、移动设备、API客户端等。
+     2. `Accept`、`Accept-Language`、`Accept-Encoding`等头部使客户端能够告知服务器它能理解或偏好的**内容类型、语言和编码格式**。服务器据此提供最适合客户端的响应版本。
+     3. `Cookie`头部，这是网站为了辨别用户，进行会话跟踪而存储在用户本地的数据。它的主要功能是为了维持当前访问会话。
+     4. `Authorization`头部可以用于传递认证信息（如用户名和密码），而`Referer`头部用于标识请求是从哪个页面发过来的，从服务器可以拿到这一信息并做相应的处理。
+     5. `Content-Type`：也叫互联网媒体类型（Internet Media Type）或者MIME类型，在HTTP协议消息头中，它用来表示具体请求中的媒体类型信息。例如，`text/html`代表HTML格式，`image/gif`代表GIF图片，`application/json`代表JSON类型。
+
+   - 响应头
+
+     响应头包含了服务器对请求的应答信息，主要的有：
+
+     - `Content-Type`：文档类型，它指定了返回的数据是什么类型。
+     - `Server`：包含了服务器的信息，例如名称，版本号等。
+     - `Set-Cookie`：设置Cookie。响应头中的Set-Cookie用于告诉浏览器将此内容放在Cookie中，下次请求时Cookie携带上。
+
+   头部是**键值对**的形式。
+
+8. Session和Cookie
+
+   在浏览网站的时候，我们经常会遇到需要登陆的情况。有些页面只有登录之后才可以访问。在登录之后可以连续访问很多次网站。但是有时候过一段时间就需要重新登录。还有一些网站，在打开浏览器时就自动登陆了，而且在很长时间内都不会失效。其实这里面都涉及了Session和Cookie的相关知识。
+
+   众所周知，网页可以分为静态网页和动态网页。静态网页加载速度快，编写简单，但功能单一，不支持根据用户输入或URL变化动态显示内容。相反，动态网页具有更多交互性和可变性，可以实现如用户登录和注册等复杂功能。
+
+   由于HTTP协议本身是无状态的，即每次请求和响应都是独立的。如果每次访问都要额外传递一些重复的请求才能获取后续响应，那未免太浪费资源了。所以为了在用户访问过程中维持状态（如登录信息），出现了两种技术：Session和Cookie。
+
+   **Session（会话）**指的是客户端和服务器之间进行的一连串的交互过程。这个过程可以由多个HTTP请求和响应组成。**Session对象**是在服务器端实现的一个程序实体，用于存储特定用户**Session（会话）**所需的**属性及配置信息**。它是一个具体的数据结构，比如一个对象或字典，在服务器的内存中维护用户会话的状态。Cookie是某些网站为了鉴别用户身份，进行Session跟踪而存储在用户本地终端上的数据。
+
+   当一个用户首次向应用程序发起请求而服务器上尚未为该用户建立Session时，服务器会自动创建一个新的Session对象，并生成一个唯一的Session ID。这个Session ID随后被存储在一个Cookie中，并通过HTTP响应发送给用户的浏览器。用户的浏览器接收并保存这个Cookie，从而在随后的请求中，Cookie会被自动地发送回服务器。服务器通过这个Session ID定位到相应的Session对象，利用其中的信息来维护用户的状态和数据。Session对象在一定时间内没有活动（即不活跃）或通过特定操作（如用户登出）被显式地终止时，会被服务器标记为过期并最终被删除。这种机制允许服务器在HTTP的无状态环境中维护跨多个请求的用户状态，从而提供连续的用户体验。
+
+   一个Cookie中可以有多个cookies，我们可以打开dev tool进行查看，==一个cookie条目==会拥有以下内容：
+
+   - `Name`：Cookie 的名称。Cookie 一旦创建，名称便不可更改。
+   - `Value`：Cookie 的值。如果值为 Unicode 字符，则需要为字符编码。如果值为二进制数据，则需要使用BASE64 编码。
+   - `Domain`：指定可以访问该 Cookie 的域名。例如设置 Domain 为 github.com，表示所有以github.com 结尾的域名都可以访问该 Cookie。
+   - `Path`：Cookie 的使用路径。如果设置为 `/path/`,则只有路径为`/path/`的页面才可以访问该 Cookie。如果设置为`/`，则本域名下的所有页面都可以访问该 Cookie。
+   - `Max-Age/Expires`：Cookie失效的时间。
+   - `Size`：Cookie 的大小。
+   - `HTTPonly`：Cookie 的`httponly`属性。若此属性为 true，则只有在HTTP Headers 中才会带有此Cookie 的信息，而不能通过`document.cookie`来访问此 Cookie。
+   - `Secure`：是否仅允许使用安全协议传输 Cookie。安全协议有 HTTPS 和SSL等，使用这些协议在网络上传输数据之前会先将数据加密。其默认值为false。
+
+   有**会话Cookie**和**持久Cookie**的划分，会话Cookie就是把Cookie放在浏览器内存里，关闭浏览器之后，Cookie即失效；持久Cookie则会把Cookie保存到客户端的硬盘中，下次还可以继续使用。用于长久保持用户的登录状态。但严格来说，也没有这么明确的划分，只是`Max-Age/Expires`字段决定了Cookie失效的时间。一些Cookie的有效时间和Session有效期设置的比较长，所以形成了持久化登录的网站。
+
+9. 代理服务器（Proxy Server）
+
+   由于互联网的分层性质，实际上我们的请求和响应会在它们到达目的地之前经过多个中介。代理服务器就是这些中介，它在客户端和终端服务器之间**转发请求和响应**。
+
+   1. 内容缓存：caching proxy缓存代理服务器，它的功能就是缓存经常请求的内容，当同样的内容被再次请求时，可以更快地提供服务。
+   2. 负载均衡：load balancing proxy负载均衡代理服务器，在大型网络环境中，代理可以帮助分散请求到多个服务器，从而提高性能和可靠性。
+   3. extended：住宅代理服务器（residential proxy）
+
+10. HTML，CSS，JavaScript
+
+   HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就是为了获取网页的内容，解析网页的数据。
+
+   关于JavaScript：许多现代网站采用Ajax、前端模块化工具构建，整个页面使用 JavaScript 渲染，这使得原始HTML是一个空壳。因而你从浏览器看到的可能并不是你得到的。在这些特定情况下，可能需要分析源代码后台Ajax接口，也可使用`Selenium`，`Splash`等库模拟JavaScript渲染。
+
+11. HTTP的消息结构
+
+    我们可以看下主要的流程和概念：
+
+    - 请求
+      - 地址（URL）和请求方式（HTTP动词）
+      - 请求头（request header）：用来描述请求和发送者的一些信息。
+      - 请求体：一般承载的内容是POST请求中的表单数据，对于GET请求，请求体则为空。
+    - 响应
+      - 响应状态码
+      - 响应头
+      - 响应体：这是最关键的部分，响应的正文数据都存在于响应体中，例如请求网页时。响应体可能时网页的HTML代码；请求一张图片时，响应体就是图片的二进制数据。我们做爬虫请求网页时，要解析的内容就是响应体。
+
+12. 正则表达式
+
+   - 字符
+
+     | 表达式 | 描述                                                   |
+     | ------ | :----------------------------------------------------- |
+     | [...]  | 字符集，也叫字符组。匹配集合中所含的任一字符。         |
+     | [^...] | 否定字符集。匹配任何不在集合中的字符。                 |
+     | [a-z]  | 字符范围。匹配指定范围内的任意字符。                   |
+     | .      | 匹配除换行符（`\n`）以外的任何单个字符。               |
+     | \      | 转义字符。                                             |
+     | \w     | 匹配任何字母数字，包括下划线（等价于`[A-Za-z0-9_]`）。 |
+     | \W     | 匹配任何非字母数字下划线（等价于`[^A-Za-z0-9_]`）。    |
+     | \d     | 匹配任何数字。等价于`[0-9]`                            |
+     | \D     | 非数字。匹配任何非数字字符。                           |
+     | \s     | 空白。匹配任何空白字符，包括空格、制表符、换行等。     |
+     | \S     | 非空白。匹配任何非空白字符。                           |
+
+   - 分组与引用
+
+     | 表达式 | 描述 |
+     | --- | --- |
+     | (expression) | 分组。匹配括号里的整个表达式。 |
+     | (?:expression) | 非捕获分组。匹配括号里的整个字符串但不获取匹配结果，拿不到分组引用。 |
+     | \num | 对前面所匹配分组的引用（回溯引用）。\num 用于引用之前已经匹配的，即表示引用第 num 个分组的内容。 |
+
+   - 锚点与边界
+
+     | 表达式 | 描述 |
+     | --- | --- |
+     | ^ | 匹配字符串或行开头。 |
+     | $ | 匹配字符串或行结尾。 |
+     | \b | 匹配单词边界。例如，`Sheep\b`可以匹配`CodeSheep`末尾的`Sheep`，不能匹配`CodeSheepCode`中的`Sheep`。 |
+     | \B | 匹配非单词边界。例如，`Code\B`可以匹配`HelloCodeSheep`中的`Code`，不能匹配`HelloCode`中的`Code`。 |
+
+   - 数量表示
+
+     | 表达式 | 描述 |
+     | --- | --- |
+     | ? | 匹配前面的表达式0个或1个。即表示可选项。非贪婪方式 |
+     | + | 匹配前面的表达式至少1个。相当于`{1,}` |
+     | * | 匹配前面的表达式0个或多个。相当于`{0,}` |
+     | \| | 或运算符。并集，可以匹配符号前后的表达式。 |
+     | {m} | 匹配前面的表达式m个。 |
+     | {m,} | 匹配前面的表达式最少m个。 |
+     | {m,n} | 匹配前面的表达式最少m个，最多n个。贪婪方式 |
+     
+     通用匹配，贪婪与非贪婪匹配：
+     
+     ==贪婪匹配==是正则表达中另外一个值得注意的点，前面写过，`{m, n}`匹配个数最少m个，最多n个，即可以匹配m个数字也可以匹配n个数字，不过当有n个数字的时候，优先匹配的是n个数字，这是因为默认为贪婪模式，即尽可能的匹配更多字符，而要使用==非贪婪==模式，需要在表达式后面加上`?`号，即`{m,n}?`。此外，我们常常会使用`.*`进行通用匹配（同时匹配多个任意字符），如果要实现非贪婪匹配，需要使用`.*?`。
+     
+     ```py
+     content='Hello 1234567 World_This is a Regex Demo'
+     result=re.match('^He.*(\d+).*Demo$', content)
+     print(result.group(1))
+     # 此时由于贪婪匹配，分组引用后的只有数字7
+     
+     # 若使用非贪婪匹配
+     result=re.match('^He.*?(\d).*?Demo$')
+     ```
+     
+     在python中实现正则匹配，主要使用`re`库：
+     
+     - 修饰符：
+     
+       最常用的修饰符有
+     
+       - `re.S`：使匹配内容包括换行符在内的所有字符。由于绝大部分HTML文本包含换行符，**所以要尽量加上该修饰符**，以免出现匹配不到的问题。
+       - `re.I`：使匹配对大小写不敏感。
+     
+     - 转义匹配
+     
+       当在目标字符串中遇到用作正则匹配的特殊字符时，在此字符前面加转义字符`\`转义以下即可。
+     
+     - `re.match()`：match匹配方法需要向它传入要匹配的字符串以及正则表达式。它会尝试从字符串的起始位置开始匹配正则表达式，如果匹配，就返回匹配成功的结果，如果不匹配，就返回None。如果正则表达式中使用了分组引用，那么可以用`xx.group(a)`来进行提取。
+     
+       ```py
+       content='Extra String Hello 1234567 World_This is a Regex Demo'
+       result=re.search('He.*?(\d+).*Demo$', content)
+       print(result)
+       print(result.group(1))
+       # 使用.group()来提取分组内容，括号内填写具体的分组序号
+       # 此时result为None，分组会报错
+       ```
+     
+     - `re.search()`：由于match方法只能从开头进行匹配，一旦开头不匹配，整个匹配就失效了。而search方法则可以在匹配时扫描整个字符串，然后返回第一个匹配成功的结果，换句话说，正则表达式可以是字符串的一部分。如果扫描完还没有找到符合规则的字符串，就返回None。
+     
+       这也侧面说明我们实际在写search方法的正则表达式时，不需要用`^`，`$`这些锚点边界字符。
+     
+     - `re.findall()`：search方法同样返回与正则表达式相匹配的第一个字符串。如果想要获取与正则表达式相匹配的所有字符串需要借助`findall`方法。返回的结果是**列表**类型，可以循环提取。
+     
+     - `re.sub()`：除了使用正则表达式提取信息，有时候还需要借助它来修改文本。sub方法可以对指定的内容进行替换。
+     
+     - `re.compile()`：compile方法可以将正则字符串翻译成正则表达式对象，以便在后面的匹配中复用。
+     
+     以下是一个例子：
+     
+     ```py
+     html = '''<div id="songs-list">
+     <h2 class="title">经典老歌</h2>
+     <p class="introduction">
+     经典老歌列表
+     </p>
+     <ul id="list" class="list-group">
+     <li data-view="2">一路上有你</li>
+     <li data-view="7">
+     <a href="/2.mp3" singer="任贤齐">沧海一声笑</a>
+     </li>
+     <li data-view="4" class="active">
+     <a href="/3.mp3" singer="齐秦">往事随风</a>
+     </li>
+     <li data-view="6"><a href="/4.mp3" singer="beyond">光辉岁月</a></li>
+     <li data-view="5"><a href="/5.mp3" singer="陈慧琳">记事本</a></li>
+     <li data-view="5">
+     <a href="/6.mp3" singer="邓丽君">但愿人长久</a>
+     </li>
+     </ul>
+     </div>'''
+     ```
+     
+     ```py
+     # 我们需要提取所有歌名，这时候<a>元素中的内容对我来说可能价值不大，可以先使用sub方法简化，然后再使用findall方法。
+     import re
+     new_html=re.sub('<a.*?>|</a>', '', html)
+     pattern=re.compile('<li.*?>(.*?)</li>')
+     results=re.findall(pattern, new_html, re.S)
+     # 列表形式进行循环提取（注意有的元素存在换行符）
+     for result in results:
+         print(result.strip())
+     ```
+
+------
+
+## 发送请求获取资源
+
+### urllib
+
+选择urllib其实是不如选择request库的。但是它还是有一些好用的函数：
+
+
+
+```pyhon
+from urllib.requests import urlopen
+```
+
+###  requests
+
+`requests`库能够使得HTTP请求更加简单快捷，相比标准库中的 `urllib`，`requests` 提供了更简洁的 API。可以用很少的代码行完成复杂的网络请求。
+
+```py
+import requests as r
+```
+
+#### 指定获取方法
+
+1. GET：
+
+   我们在爬虫中最常使用的动词是`get`。`requests`库使得请求用途更加明确：
+
+   ```py
+   url='https://quotes.toscrape.com/' # specify the url
+   resp=r.get(url=url)	# get the response object
+   ```
+
+   当发送请求后，服务器会返回一个response对象，格式形如`<Response [xxx]>`，括号内为状态代码。
+
+   可以进一步对响应对象提取信息，例如：
+
+   ```py
+   resp.status_code		# get the status code
+   resp.headers	    	# get the response headers
+   resp.request	    	# get the request that leads the response
+   resp.request.url		# get the url
+   resp.request.headers	 # get the request headers
+   resp.cookies		    # get the cookie
+   resp.text			    # get the web resources
+   resp.json()
+   resp.content
+   ```
+
+   关于`resp.text`，`resp.json()`以及`resp.content`，它们是处理 HTTP 响应的不同方法，用于获取响应数据。三者的区别在于返回的类型不同：
+
+   - `resp.text`：返回的是原始的响应文本，没有进行任何额外的处理或解析。这种形式返回的是字符串（`str`）类型。
+
+     ```py
+     type(resp.text)		# str
+     ```
+
+     `resp.text`会根据 HTTP**响应头**中的字符编码（如`Content-Type`字段）来解码响应内容。不同的服务器响应类型决定了`resp.text`返回的格式，这也就解释了为什么有些网页使用该函数后提取的内容是JSON格式的字符串，而有些直接是HTML格式的字符串：
+
+     ```py
+     json_resp=r.get('https://www.httpbin.org/get')
+     # check the response headers
+     json_resp.headers['Content-Type']
+     # 'text/html; charset=utf-8'
+     json_resp.text
+     
+     html_resp=r.get('https://quotes.toscrape.com/')
+     html_resp.headers['Content-Type']
+     # 'application/json'
+     html_resp.text
+     ```
+
+   - `resp.json()`： 尝试将响应内容解析为 JSON 格式，并将其转换为 Python 中的字典。
+
+     ```py
+     type(resp.json())	# dir
+     dir(resp.json())	# make it easier to read
+     ```
+
+     这是一种方便的方法，当知道响应内容是 JSON 格式时使用。它自动处理 JSON 的解析，省去了手动处理的麻烦。但如果响应内容不是有效的 JSON 格式，调用 `resp.json()` 会抛出一个异常，发生了解析错误（通常是`json.JSONDecodeError`）。
+     
+   - `resp.content`：由于图片、音频、视频这些文件本质上都是由二进制码组成的，由于特定的保存格式和对应的解析方式，我们才可以看到这些形形色色的多媒体。如果仍使用`resp.text`来抓取，会在解析成字符串的时候发生乱码，所以我们会使用`resp.content`函数，返回`bytes`类型：
+
+     ```py
+     import requests as r
+     resp=r.get('https://scrape.center/favicon.ico')
+     class(resp.content)
+     ```
+
+2. POST
+
+   POST请求是另一个常用的请求方法，即`requests.post()`，根据目的的不同，会有不同的参数选择：
+
+   - 模拟提交数据（`data`），待上传的数据以字典形式传入函数：
+
+     ```py
+     data={
+       'name':'zhizhifan',
+       'age':'23'
+     }
+     resp=r.post('https://www.httpbin.org/post', data=data)
+     print(resp.text)
+     ```
+
+   - 提交文件（`files`），文件仍然需要以字典形式传入，值为文件的地址：
+
+     ```py
+     import requests as r
+     resp=r.get('https://scrape.center/favicon.ico')
+     
+     with open('images/favicon.ico', 'wb') as f:
+       f.write(resp.content)  
+     
+     
+     files={
+       'icon':'images/favicon.ico'	# the address
+     }
+     
+     resp=r.post('https://www.httpbin.org/post', files=files)
+     print(resp.text)
+     ```
+
+#### 添加额外信息（请求查询参数）
+
+请求参数是URL 的一部分（作为查询字符串），一般跟随在`?`后面，我们可以通过`params`参数添加额外信息：
+
+```py
+base_url="https://api.sunrisesunset.io/json"
+params={
+  "lat":43.6532,
+  "lng":-79.3832,
+  "timezone":"EST",
+  "date":"today"
+}
+resp=r.get(url=base_url, params=params)
+```
+
+#### 添加请求头
+
+之前介绍过，头部是带有附加信息的键值对形式，我们可以通过代码向请求中添加头部（作为参数加入请求函数中），
+
+1. 例如改变`User-Agent`请求头内容：
+
+   ```py
+   headers={
+       'User-Agent':'Mozilla/5.0';
+   }
+   # a directionary
+   resp=r.get(url=url,headers=headers)
+   ```
+
+   在未进行指定的时候，请求头的`User-Agent`是类似`python-requests/2.29.0`的形式。
+
+2. 设置Cookie：
+
+   我们可以先登录一个网站，这里以我的`github`账号登录网页，然后获取请求头中的Cookie：
+
+   ```py
+   cookie='_octo=GH1.1.80203512.1679826844; preferred_color_mode=light; tz=Asia/Shanghai; _device_id=fa442c86034220bea313f1b3f47b2501; tz=Asia/Shanghai; color_mode={"color_mode":"auto","light_theme":{"name":"light","color_mode":"light"},"dark_theme":{"name":"dark","color_mode":"dark"}}; saved_user_sessions=128157054:EhJHm-cWJ8_nuGFl5AOtXz3FWRdiOxdf-2a083T-6njXZMJI; user_session=EhJHm-cWJ8_nuGFl5AOtXz3FWRdiOxdf-2a083T-6njXZMJI; __Host-user_session_same_site=EhJHm-cWJ8_nuGFl5AOtXz3FWRdiOxdf-2a083T-6njXZMJI; logged_in=yes; dotcom_user=zhizhifan; has_recent_activity=1; _gh_sess=aSb3tQrFnTYoYaAp1oyA+Tnw0e/PeqLrv7yKPg3ubl/nakN2fVgfgv2WK1NosygiXklRmLZ7mr0/FastfZmj69czm8PvXv/vQ4X97qF/AEAA+xxipRL2N/dRY0+BHQRZngGlBHPGTRGn+a2JXh5hzufTxv3JafRBbYS9lx+w72XIQ9kGNnljz9JgfGYQFKv1w6DGhGphvbxNr7p7/hJPJglrAeQ+SD5iaLrBnJbVty1bGEG3tExJdYJz4zlbI6rUc2tf9TMBmyrPyhyvzNg1Z7zhRrDqGNVDY6e37/XiT3l7p4pRcw/Lq5HyQY9XPu8IJeHgDGtZ5kMqPgFS655B725mQlHYvVexu0Mq0mEXGYQOS6AVxzjUMUJaFefpOW/QyLQqyE0WtJcGF+xs/eb/D1BYYznlyL5fcZcqljhMD4itA1oRBPZbFG94rmWzfK/e3jJ91yFmU1puMUWzB6k8r8o/Jh25Rh40Y5Ik/2nahOg6JgeRmoxVWkwmfPrI4JHKypvtZ1NBGBNwrw5amm/mhg==--R/T0A1MkxzKG5s8X--berbFS6TAzkL3qimcnJq8w=='
+   ```
+
+   可以看到确实是键值对的形式，名称和对应的值，然后通过请求头进行设置请求：
+
+   ```py
+   headers={
+     'Cookie':cookie
+   }
+   
+   resp=r.get('https://github.com/', headers=headers)
+   print(resp.text)
+   ```
+
+   这就完成了模拟登陆的操作。
+
+#### 获取和设置Cookie
+
+requests库获取Cookie的方法也很简单，先获得`response`对象，然后使用`xx.cookies`。注意这里获得的是从响应头中获得的 `Set-Cookie`信息，而不是请求头中的 `Cookie`。
+
+```py
+import requests as r
+resp=r.get('https://www.baidu.com')
+print(resp.cookies)
+```
+
+得到的是`RequestCoolieJar`类型。例如：`<RequestsCookieJar[<Cookie BDORZ=27315 for .baidu.com/>]>`。
+
+然后我们可以调用`items`方法将Cookie转化为==由元组组成的列表==，遍历输出：
+
+```py
+for key, value in resp.cookies.item():
+    print(key + '=' + value)
+```
+
+关于设置cookie，则在上面关于设置请求头部分介绍过。这里介绍另外一个方法，当对一个响应对象应用`resp.cookies`获取响应Cookie时，我们获得了`RequestsCookieJar`对象。所以我们也可以构造这个对象，然后将它传入`requests.get()`函数的`cookie`参数中：
+
+```py
+# 对原有cookie字符串进行分割处理，获得列表。循环处理提取key，value构造RequestsCookieJar对象。
+import requests as r
+jar=r.cookies.RequestsCookieJar()
+for cookie_item in cookie.split(';'):
+    key, value=cookie_item.split('=', 1)
+    jar.set(key, value)
+# split(separator, maxsplit) maxsplit指定了分割操作的最大次数为1，即遇到第一个分隔符（等号）时分割字符串，然后停止。
+# 这将产生两部分：第一部分是等号之前的内容，第二部分是等号之后的所有内容。
+
+resp=r.get('https://github.com/', cookie=jar)
+print(resp.text)
+```
+
+#### Session维持
+
+之前提到，HTTP协议是无状态的，为了克服这种独立性带来的限制，我们通常会使用Session和Cookie技术。设想这样一个场景：首先使用POST方法登录某个网站，然后想要通过GET方法获取登录后的个人信息。如果没有持续的会话管理，这就像在两个独立的浏览器中操作，彼此没有联系，因此无法获取到个人信息。每次请求都单独设置Cookie是一种解决方案，但这既繁琐又容易出错。
+
+在爬虫编程中，为了解决这个问题，我们可以使用Session对象。正如前面所介绍的，Session对象在服务器端代表一个用户会话，并存储了会话所需的状态信息。在爬虫中，使用编程语言提供的Session对象，我们可以模拟一个持续的会话。这样，当爬虫在两次请求间使用相同的Session对象时，就可以保持状态（如登录凭证），而不必担心每次都处理Cookie。Session对象会自动管理发送和接收Cookie，使得连续的请求看起来就像是来自同一个用户。
+
+这可以模拟在一个浏览器中打开统一站点的不同页面。
+
+```py
+import requests as r
+s=r.Session()
+resp=s.get()
+```
+
+#### SSL验证
+
+现在很多网站要求使用HTTPS协议，但是有些网站可能并没有设置好HTTPS证书，或者网站的HTTPS证书可能并不被CA机构认可，这时这些网站就可能出现SSL证书错误的提示
+
+```py
+import requests as r
+resp=r.get('https://ssr2.scrape.center/')
+# 这时候会直接抛出SSLError错误，这是因为我们请求的URL证书是无效的
+```
+
+如果要强制爬取，可以使用`verify`参数：
+
+```py
+resp=r.get('https://ssr2.scrape.center/', verify=False)
+print(resp.status_code)
+print(resp.text)
+```
+
+
+
+
+
+## 解析和处理网页数据
+
+### 正则表达式匹配
+
+前置知识有简短介绍。
