@@ -281,6 +281,79 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
       print(result.strip())
   ```
 
+13. `Xpath`路径语言
+
+    在`XPath`中，有七种类型的**节点**：元素、属性、文本、命名空间、处理指令、注释以及文档节点。元素是一种节点类型，通常指具有开始标签和结束标签的部分。
+
+    ```xml
+    <bookstore> (元素节点，同时是根元素)
+    
+    <author>J K. Rowling</author> (元素节点)
+        
+    J K. Rowling (文本节点)
+    
+    lang="en" (属性节点)
+    ```
+    
+    XML 文档是被作为节点树来对待的：
+    
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+     
+    <bookstore>
+     
+    <book>
+      <title lang="eng">Harry Potter</title>
+      <price>29.99</price>
+    </book>
+     
+    <book>
+      <title lang="eng">Learning XML</title>
+      <price>39.95</price>
+    </book>
+     
+    </bookstore>
+    ```
+    
+    - 选取节点
+    
+      | 表达式   | 描述                                                         |
+      | :------- | :----------------------------------------------------------- |
+      | nodename | 选取当前节点的所有名为`nodename`的**子元素**。               |
+      | /        | 从文档的**根元素**开始选择节点。                             |
+      | //       | 在**整个文档中**搜索匹配的节点，不考虑它们在文档中的具体位置。 |
+      | .        | 选取当前节点。                                               |
+      | ..       | 选取当前节点的父节点。                                       |
+      | @        | 选取属性。                                                   |
+      
+      以下是一些示例：
+      
+      | 路径表达式      | 结果                                                         |
+      | :-------------- | :----------------------------------------------------------- |
+      | bookstore       | 从当前节点选取所有名为`bookstore`的子元素。                  |
+      | /bookstore      | 选择文档的根元素节点下的所有名为`bookstore`的子元素。        |
+      | bookstore/book  | 从当前节点开始，选择所有名为`bookstore`的子元素中的所有名为`book`的子元素。 |
+      | //book          | 选取文档中所有名为`book`的元素，不考虑它们的具体位置或层级。 |
+      | bookstore//book | 从当前节点开始，选择所有名为`bookstore`的子元素，并从这些`bookstore`元素中选择所有后代中的`book`元素，不管这些`book`元素位于`bookstore`下的哪个层级。 |
+      | //@lang         | 选取名为lang的所有**属性**。                                 |
+      
+    - 谓语
+    
+      谓语用来查找**某个特定的节点**或者**包含某个指定的值的节点**。
+    
+      谓语被嵌在方括号中。一些常见的例子有：
+    
+      | 路径表达式                          | 结果                                                         |
+      | :---------------------------------- | :----------------------------------------------------------- |
+      | /bookstore/book[1]                  | 选取属于 bookstore 子元素的第一个 book 元素。                |
+      | /bookstore/book[last()]             | 选取属于 bookstore 子元素的最后一个 book 元素。              |
+      | /bookstore/book[last()-1]           | 选取属于 bookstore 子元素的倒数第二个 book 元素。            |
+      | /bookstore/book[position()<3]       | 选取最前面的两个属于 bookstore 元素的子元素的 book 元素。    |
+      | //title[@lang]                      | 选取所有拥有名为 lang 的属性的 title 元素。                  |
+      | //title[@lang='eng']                | 选取所有 title 元素，且这些元素拥有值为 eng 的 lang 属性。   |
+      | /bookstore/book[price>35.00]        | 选取 bookstore 元素的所有 book 元素，且其中的 price 元素的值须大于 35.00。 |
+      | /bookstore/book[price>35.00]//title | 选取 bookstore 元素中的 book 元素的**所有 title 元素**，且其中 book 的 price 元素的值须大于 35.00。 |
+
 ---
 
 ## 发送请求获取资源
