@@ -6,153 +6,157 @@
 
 ## 前置知识
 
-1. 我们爬虫学习的整体框架是：
+### 爬虫学习的整体框架
 
-   1. 获取网站资源：`requests`，`httpx`，`playwright`
-   2. 解析（parse）和处理（process）：`beautifulsoup`，`selectolax`
-   3. 加载（load）和提取（extract）：`txt`，`json`，`MySQL`，`MongoDB`
+1. 获取网站资源：`requests`，`httpx`，`playwright`
+2. 解析（parse）和处理（process）：`beautifulsoup`，`selectolax`
+3. 加载（load）和提取（extract）：`txt`，`json`，`MySQL`，`MongoDB`
 
-   以上工作管道（pipeline）也可以由 `scrapy`框架完成。
+以上工作管道（pipeline）也可以由 `scrapy`框架完成。
 
-   关于爬取的资源，最常见的是 HTML 代码，但有些网页可能返回的是 JSON 字符串（其中 API 接口大多采用这种形式）。网页中还包含各种二进制数据，如图片、视频和音频等。除了上述数据，网页中还有各种扩展名文件，如 CSS，JavaScript 和配置文件等。
+关于爬取的资源，最常见的是 HTML 代码，但有些网页可能返回的是 JSON 字符串（其中 API 接口大多采用这种形式）。网页中还包含各种二进制数据，如图片、视频和音频等。除了上述数据，网页中还有各种扩展名文件，如 CSS，JavaScript 和配置文件等。
 
-2. URL（Universal Resource Locator）
+### URL（Universal Resource Locator）
 
-   统一资源定位符。我们通过一个链接，即 URL，从互联网中找到某个资源。URL 的资本组成格式如下，其中中括号部分不是必要的：
+统一资源定位符。我们通过一个链接，即 URL，从互联网中找到某个资源。URL 的资本组成格式如下，其中中括号部分不是必要的：
 
-   `scheme://[username:password@]hostname[:port][/path][;parameters][?query][#fragment]`
+`scheme://[username:password@]hostname[:port][/path][;parameters][?query][#fragment]`
 
-   - `scheme`：协议，又常常被称作 `protocol`。常用的有：`http`，`https`。
-   - `username`，`password`：在某些情况下 URL 需要提供用户名和密码才能访问，URL 大概是这样的：`https://admin:admin@ssr3.scrape.center`
-   - `hostname`：主机地址，它可以是域名 `www.baidu.com`或者 IP 地址 `8.8.8.8`。
-   - `port`：端口。这是**服务器**设定的服务端口。有些 URL 没有端口信息，这是因为使用了默认的端口。例如 http 协议的默认端口为 80，https 协议的默认端口为 443。
-   - `path`：路径，指的是网络资源在服务器中的指定地址。
-   - `parameters`：参数，用来指定访问某个资源时的附加信息，但由于现在 `parameters`用的很少，所以现在人们常常把 `query`的部分称作参数，并进行混用，但是严格来说，`parameters`是跟在 `;`符号后面的。
-   - `query`：查询，用来查询某类资源，如果有多个查询，则用 `&`分隔开。这是常见的，例如：`https://www.baidu.com/?wd=nba&ie=utf-8`。我们在 GET 设置请求参数时，实际上设置的是这个。
-   - `fragment`：片段，它是对资源描述的部分补充，可以理解为资源内部的书签。
+- `scheme`：协议，又常常被称作 `protocol`。常用的有：`http`，`https`。
+- `username`，`password`：在某些情况下 URL 需要提供用户名和密码才能访问，URL 大概是这样的：`https://admin:admin@ssr3.scrape.center`
+- `hostname`：主机地址，它可以是域名 `www.baidu.com`或者 IP 地址 `8.8.8.8`。
+- `port`：端口。这是**服务器**设定的服务端口。有些 URL 没有端口信息，这是因为使用了默认的端口。例如 http 协议的默认端口为 80，https 协议的默认端口为 443。
+- `path`：路径，指的是网络资源在服务器中的指定地址。
+- `parameters`：参数，用来指定访问某个资源时的附加信息，但由于现在 `parameters`用的很少，所以现在人们常常把 `query`的部分称作参数，并进行混用，但是严格来说，`parameters`是跟在 `;`符号后面的。
+- `query`：查询，用来查询某类资源，如果有多个查询，则用 `&`分隔开。这是常见的，例如：`https://www.baidu.com/?wd=nba&ie=utf-8`。我们在 GET 设置请求参数时，实际上设置的是这个。
+- `fragment`：片段，它是对资源描述的部分补充，可以理解为资源内部的书签。
 
-3. 关于 HTTP（Hyper Text Transfer Protocol）的几个特征：
+### HTTP 的几个特征
 
-   1. HTTP 是**无连接的**：无连接的含义是限制每次连接只处理一个请求（request）。服务器（server）处理完客户（client）的请求，并收到客户的应答后，即断开连接采用这种方式可以节省传输时间。
-   2. HTTP 是**媒体独立的**：这意味着，只要客户端和服务器知道如何处理数据内容，任何类型的数据都可以通过 HTTP 发送。客户端以及服务器指定使用适合的 MIME-type 内容类型。
-   3. HTTP 是**无状态的**（stateless）：无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传。这样可能导致每次连接传送的数据量增大，另一方面，在服务器不需要先前信息时，它的应答就比较快。但实际上客户端和服务器的数据交换是“有状态的（stateful）”。客户端向服务器发送账号密码，然后服务器返回建立好的 cookie，该 cookie 被存储在用户的本地中（local storage）。之后客户端再发送请求时会带上该 cookie，服务器就能识别该 cookie 并允许操作，这样就实现了一种表面上的有记忆。
+`HTTP`：Hyper Text Transfer Protocol
 
-   HTTP 和 HTTPS（Hyper Transfer Protocol over Secure Socket Layer）都是网络协议，HTTPS 可以理解为 HTTP 的安全版，现在更多的网站和 APP 正在朝着 HTTPS 的方向发展。
+1. HTTP 是**无连接的**：无连接的含义是限制每次连接只处理一个请求（request）。服务器（server）处理完客户（client）的请求，并收到客户的应答后，即断开连接采用这种方式可以节省传输时间。
+2. HTTP 是**媒体独立的**：这意味着，只要客户端和服务器知道如何处理数据内容，任何类型的数据都可以通过 HTTP 发送。客户端以及服务器指定使用适合的 MIME-type 内容类型。
+3. HTTP 是**无状态的**（stateless）：无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传。这样可能导致每次连接传送的数据量增大，另一方面，在服务器不需要先前信息时，它的应答就比较快。但实际上客户端和服务器的数据交换是“有状态的（stateful）”。客户端向服务器发送账号密码，然后服务器返回建立好的 cookie，该 cookie 被存储在用户的本地中（local storage）。之后客户端再发送请求时会带上该 cookie，服务器就能识别该 cookie 并允许操作，这样就实现了一种表面上的有记忆。
 
-4. 用户代理（user-agent）
+HTTP 和 HTTPS（Hyper Transfer Protocol over Secure Socket Layer）都是网络协议，HTTPS 可以理解为 HTTP 的安全版，现在更多的网站和 APP 正在朝着 HTTPS 的方向发展。
 
-   用户代理实际上就是代表客户用以访问网络资源的软件（或者说“中介”）。它发起请求并引起服务器响应，同时解释（interpret）响应内容并将其呈现（render）给用户。不同的用户代理类型会有不同的呈现级别和类型。常见的用户代理就是浏览器。
+### 用户代理（user-agent）
 
-5. HTTP 动词（HTTP verbs）/ 请求方法（Request Method）
+用户代理实际上就是代表客户用以访问网络资源的软件（或者说“中介”）。它发起请求并引起服务器响应，同时解释（interpret）响应内容并将其呈现（render）给用户。不同的用户代理类型会有不同的呈现级别和类型。常见的用户代理就是浏览器。
 
-   1. GET：`retrieve a resource`
-   2. POST：`create a new resource`。POST 请求大多是在提交表单时发起，相比于 GET 请求中的参数包含在 URL 里面，数据可以在 URL 中看到，POST 请求的 UTL 不会包含这些数据，数据都是通过表单形式传输，会包含在请求体中。
-   3. PUT：`update resource`
-   4. DELETE：`delete a resource`
+### HTTP 动词（HTTP verbs）
 
-6. HTTP 状态代码（HTTP status code）
+也叫做请求方法（Request Method）。
 
-   客户端在发送请求后，服务器会给予客户端响应：是如何处理客户端发送的请求的。于是状态代码就会与每个响应一起发送给客户端。状态代码由三个数字组成，其中第一个数字是 general category，第二三个数字是 sub-category，以及 even more specific sub-category。通常状态代码后面还会有一个原因短语：
+1. GET：`retrieve a resource`
+2. POST：`create a new resource`。POST 请求大多是在提交表单时发起，相比于 GET 请求中的参数包含在 URL 里面，数据可以在 URL 中看到，POST 请求的 UTL 不会包含这些数据，数据都是通过表单形式传输，会包含在请求体中。
+3. PUT：`update resource`
+4. DELETE：`delete a resource`
 
-   - `1xx`：信息性响应（informational responses），表示请求还在进行中。
-   - `2xx`：状态性响应（status responses），表示请求已经成功了。
-     - `201`：创建成功（Created）
-     - `204`：没有内容（No Content）
-   - `3xx`：重定向响应（redirection responses），表明请求的资源已经被移动。
-     - `301`：永久移动（Move Permanently）
-     - `302`：临时移动（Found）
-   - `4xx`：用户端错误响应（client error responses）
-     - `404`：未找到（Not Found）
-     - `403`：客户端禁止访问（Forbidden）
-   - `5xx`：服务器错误响应（server error responses）
-     - `500`：内部错误（Internal Server Error）
-     - `502`：网关错误（Bad Gateway）
+### HTTP 状态代码（HTTP status code）
 
-   在 python 的 requests 库中，可以直接查询这些状态码：
+客户端在发送请求后，服务器会给予客户端响应：是如何处理客户端发送的请求的。于是状态代码就会与每个响应一起发送给客户端。状态代码由三个数字组成，其中第一个数字是 general category，第二三个数字是 sub-category，以及 even more specific sub-category。通常状态代码后面还会有一个原因短语：
 
-   ```py
-   import requests as r
-   print(r.codes.ok)			 # 200
-   print(r.codes.not_found)	  # 404
-   ```
+- `1xx`：信息性响应（informational responses），表示请求还在进行中。
+- `2xx`：状态性响应（status responses），表示请求已经成功了。
+  - `201`：创建成功（Created）
+  - `204`：没有内容（No Content）
+- `3xx`：重定向响应（redirection responses），表明请求的资源已经被移动。
+  - `301`：永久移动（Move Permanently）
+  - `302`：临时移动（Found）
+- `4xx`：用户端错误响应（client error responses）
+  - `404`：未找到（Not Found）
+  - `403`：客户端禁止访问（Forbidden）
+- `5xx`：服务器错误响应（server error responses）
+  - `500`：内部错误（Internal Server Error）
+  - `502`：网关错误（Bad Gateway）
 
-7. HTTP 头部（HTTP Headers）
+在 python 的 requests 库中，可以直接查询这些状态码：
 
-   HTTP 协议是**可扩展的**，这是通过头部体现的。HTTP 头部包括请求头和响应头。
+```py
+import requests as r
+print(r.codes.ok)			 # 200
+print(r.codes.not_found)	  # 404
+```
 
-   - 请求头
+### HTTP 头部（HTTP Headers）
 
-     我们可以通过使用头部来说明服务器要使用的附加信息，==不过是否选择忽略头部还是选择以某种特殊方式解释头部，这都取决于服务器==。
+HTTP 协议是**可扩展的**，这是通过头部体现的。HTTP 头部包括请求头和响应头。
 
-     1. `User-Agent`头部，服务器可以了解发出请求的客户端类型，如浏览器、移动设备、API 客户端等。
-     2. `Accept`、`Accept-Language`、`Accept-Encoding`等头部使客户端能够告知服务器它能理解或偏好的**内容类型、语言和编码格式**。服务器据此提供最适合客户端的响应版本。
-     3. `Cookie`头部，这是网站为了辨别用户，进行会话跟踪而存储在用户本地的数据。它的主要功能是为了维持当前访问会话。
-     4. `Authorization`头部可以用于传递认证信息（如用户名和密码），而 `Referer`头部用于标识请求是从哪个页面发过来的，从服务器可以拿到这一信息并做相应的处理。
-     5. `Content-Type`：也叫互联网媒体类型（Internet Media Type）或者 MIME 类型，在 HTTP 协议消息头中，它用来表示具体请求中的媒体类型信息。例如，`text/html`代表 HTML 格式，`image/gif`代表 GIF 图片，`application/json`代表 JSON 类型。
+- 请求头
 
-   - 响应头
+  我们可以通过使用头部来说明服务器要使用的附加信息，==不过是否选择忽略头部还是选择以某种特殊方式解释头部，这都取决于服务器==。
 
-     响应头包含了服务器对请求的应答信息，主要的有：
+  1. `User-Agent`头部，服务器可以了解发出请求的客户端类型，如浏览器、移动设备、API 客户端等。
+  2. `Accept`、`Accept-Language`、`Accept-Encoding`等头部使客户端能够告知服务器它能理解或偏好的**内容类型、语言和编码格式**。服务器据此提供最适合客户端的响应版本。
+  3. `Cookie`头部，这是网站为了辨别用户，进行会话跟踪而存储在用户本地的数据。它的主要功能是为了维持当前访问会话。
+  4. `Authorization`头部可以用于传递认证信息（如用户名和密码），而 `Referer`头部用于标识请求是从哪个页面发过来的，从服务器可以拿到这一信息并做相应的处理。
+  5. `Content-Type`：也叫互联网媒体类型（Internet Media Type）或者 MIME 类型，在 HTTP 协议消息头中，它用来表示具体请求中的媒体类型信息。例如，`text/html`代表 HTML 格式，`image/gif`代表 GIF 图片，`application/json`代表 JSON 类型。
 
-     - `Content-Type`：文档类型，它指定了返回的数据是什么类型。
-     - `Server`：包含了服务器的信息，例如名称，版本号等。
-     - `Set-Cookie`：设置 Cookie。响应头中的 Set-Cookie 用于告诉浏览器将此内容放在 Cookie 中，下次请求时 Cookie 携带上。
+- 响应头
 
-   头部是**键值对**的形式。
+  响应头包含了服务器对请求的应答信息，主要的有：
 
-8. Session 和 Cookie
+  - `Content-Type`：文档类型，它指定了返回的数据是什么类型。
+  - `Server`：包含了服务器的信息，例如名称，版本号等。
+  - `Set-Cookie`：设置 Cookie。响应头中的 Set-Cookie 用于告诉浏览器将此内容放在 Cookie 中，下次请求时 Cookie 携带上。
 
-   在浏览网站的时候，我们经常会遇到需要登陆的情况。有些页面只有登录之后才可以访问。在登录之后可以连续访问很多次网站。但是有时候过一段时间就需要重新登录。还有一些网站，在打开浏览器时就自动登陆了，而且在很长时间内都不会失效。其实这里面都涉及了 Session 和 Cookie 的相关知识。
+头部是**键值对**的形式。
 
-   众所周知，网页可以分为静态网页和动态网页。静态网页加载速度快，编写简单，但功能单一，不支持根据用户输入或 URL 变化动态显示内容。相反，动态网页具有更多交互性和可变性，可以实现如用户登录和注册等复杂功能。
+### Session 和 Cookie
 
-   由于 HTTP 协议本身是无状态的，即每次请求和响应都是独立的。如果每次访问都要额外传递一些重复的请求才能获取后续响应，那未免太浪费资源了。所以为了在用户访问过程中维持状态（如登录信息），出现了两种技术：Session 和 Cookie。
+在浏览网站的时候，我们经常会遇到需要登陆的情况。有些页面只有登录之后才可以访问。在登录之后可以连续访问很多次网站。但是有时候过一段时间就需要重新登录。还有一些网站，在打开浏览器时就自动登陆了，而且在很长时间内都不会失效。其实这里面都涉及了 Session 和 Cookie 的相关知识。
 
-   **Session（会话）**指的是客户端和服务器之间进行的一连串的交互过程。这个过程可以由多个 HTTP 请求和响应组成。**Session 对象**是在服务器端实现的一个程序实体，用于存储特定用户**Session（会话）**所需的**属性及配置信息**。它是一个具体的数据结构，比如一个对象或字典，在服务器的内存中维护用户会话的状态。Cookie 是某些网站为了鉴别用户身份，进行 Session 跟踪而存储在用户本地终端上的数据。
+众所周知，网页可以分为静态网页和动态网页。静态网页加载速度快，编写简单，但功能单一，不支持根据用户输入或 URL 变化动态显示内容。相反，动态网页具有更多交互性和可变性，可以实现如用户登录和注册等复杂功能。
 
-   当一个用户首次向应用程序发起请求而服务器上尚未为该用户建立 Session 时，服务器会自动创建一个新的 Session 对象，并生成一个唯一的 Session ID。这个 Session ID 随后被存储在一个 Cookie 中，并通过 HTTP 响应发送给用户的浏览器。用户的浏览器接收并保存这个 Cookie，从而在随后的请求中，Cookie 会被自动地发送回服务器。服务器通过这个 Session ID 定位到相应的 Session 对象，利用其中的信息来维护用户的状态和数据。Session 对象在一定时间内没有活动（即不活跃）或通过特定操作（如用户登出）被显式地终止时，会被服务器标记为过期并最终被删除。这种机制允许服务器在 HTTP 的无状态环境中维护跨多个请求的用户状态，从而提供连续的用户体验。
+由于 HTTP 协议本身是无状态的，即每次请求和响应都是独立的。如果每次访问都要额外传递一些重复的请求才能获取后续响应，那未免太浪费资源了。所以为了在用户访问过程中维持状态（如登录信息），出现了两种技术：Session 和 Cookie。
 
-   一个 Cookie 中可以有多个 cookies，我们可以打开 dev tool 进行查看，==一个 cookie 条目==会拥有以下内容：
+**Session（会话）**指的是客户端和服务器之间进行的一连串的交互过程。这个过程可以由多个 HTTP 请求和响应组成。**Session 对象**是在服务器端实现的一个程序实体，用于存储特定用户**Session（会话）**所需的**属性及配置信息**。它是一个具体的数据结构，比如一个对象或字典，在服务器的内存中维护用户会话的状态。Cookie 是某些网站为了鉴别用户身份，进行 Session 跟踪而存储在用户本地终端上的数据。
 
-   - `Name`：Cookie 的名称。Cookie 一旦创建，名称便不可更改。
-   - `Value`：Cookie 的值。如果值为 Unicode 字符，则需要为字符编码。如果值为二进制数据，则需要使用 BASE64 编码。
-   - `Domain`：指定可以访问该 Cookie 的域名。例如设置 Domain 为 github.com，表示所有以 github.com 结尾的域名都可以访问该 Cookie。
-   - `Path`：Cookie 的使用路径。如果设置为 `/path/`,则只有路径为 `/path/`的页面才可以访问该 Cookie。如果设置为 `/`，则本域名下的所有页面都可以访问该 Cookie。
-   - `Max-Age/Expires`：Cookie 失效的时间。
-   - `Size`：Cookie 的大小。
-   - `HTTPonly`：Cookie 的 `httponly`属性。若此属性为 true，则只有在 HTTP Headers 中才会带有此 Cookie 的信息，而不能通过 `document.cookie`来访问此 Cookie。
-   - `Secure`：是否仅允许使用安全协议传输 Cookie。安全协议有 HTTPS 和 SSL 等，使用这些协议在网络上传输数据之前会先将数据加密。其默认值为 false。
+当一个用户首次向应用程序发起请求而服务器上尚未为该用户建立 Session 时，服务器会自动创建一个新的 Session 对象，并生成一个唯一的 Session ID。这个 Session ID 随后被存储在一个 Cookie 中，并通过 HTTP 响应发送给用户的浏览器。用户的浏览器接收并保存这个 Cookie，从而在随后的请求中，Cookie 会被自动地发送回服务器。服务器通过这个 Session ID 定位到相应的 Session 对象，利用其中的信息来维护用户的状态和数据。Session 对象在一定时间内没有活动（即不活跃）或通过特定操作（如用户登出）被显式地终止时，会被服务器标记为过期并最终被删除。这种机制允许服务器在 HTTP 的无状态环境中维护跨多个请求的用户状态，从而提供连续的用户体验。
 
-   有**会话 Cookie**和**持久 Cookie**的划分，会话 Cookie 就是把 Cookie 放在浏览器内存里，关闭浏览器之后，Cookie 即失效；持久 Cookie 则会把 Cookie 保存到客户端的硬盘中，下次还可以继续使用。用于长久保持用户的登录状态。但严格来说，也没有这么明确的划分，只是 `Max-Age/Expires`字段决定了 Cookie 失效的时间。一些 Cookie 的有效时间和 Session 有效期设置的比较长，所以形成了持久化登录的网站。
+一个 Cookie 中可以有多个 cookies，我们可以打开 dev tool 进行查看，==一个 cookie 条目==会拥有以下内容：
 
-9. 代理服务器（Proxy Server）
+- `Name`：Cookie 的名称。Cookie 一旦创建，名称便不可更改。
+- `Value`：Cookie 的值。如果值为 Unicode 字符，则需要为字符编码。如果值为二进制数据，则需要使用 BASE64 编码。
+- `Domain`：指定可以访问该 Cookie 的域名。例如设置 Domain 为 github.com，表示所有以 github.com 结尾的域名都可以访问该 Cookie。
+- `Path`：Cookie 的使用路径。如果设置为 `/path/`,则只有路径为 `/path/`的页面才可以访问该 Cookie。如果设置为 `/`，则本域名下的所有页面都可以访问该 Cookie。
+- `Max-Age/Expires`：Cookie 失效的时间。
+- `Size`：Cookie 的大小。
+- `HTTPonly`：Cookie 的 `httponly`属性。若此属性为 true，则只有在 HTTP Headers 中才会带有此 Cookie 的信息，而不能通过 `document.cookie`来访问此 Cookie。
+- `Secure`：是否仅允许使用安全协议传输 Cookie。安全协议有 HTTPS 和 SSL 等，使用这些协议在网络上传输数据之前会先将数据加密。其默认值为 false。
 
-   由于互联网的分层性质，实际上我们的请求和响应会在它们到达目的地之前经过多个中介。代理服务器就是这些中介，它在客户端和终端服务器之间**转发请求和响应**。
+有**会话 Cookie**和**持久 Cookie**的划分，会话 Cookie 就是把 Cookie 放在浏览器内存里，关闭浏览器之后，Cookie 即失效；持久 Cookie 则会把 Cookie 保存到客户端的硬盘中，下次还可以继续使用。用于长久保持用户的登录状态。但严格来说，也没有这么明确的划分，只是 `Max-Age/Expires`字段决定了 Cookie 失效的时间。一些 Cookie 的有效时间和 Session 有效期设置的比较长，所以形成了持久化登录的网站。
 
-   1. 内容缓存：caching proxy 缓存代理服务器，它的功能就是缓存经常请求的内容，当同样的内容被再次请求时，可以更快地提供服务。
-   2. 负载均衡：load balancing proxy 负载均衡代理服务器，在大型网络环境中，代理可以帮助分散请求到多个服务器，从而提高性能和可靠性。
-   3. extended：住宅代理服务器（residential proxy）
+### 代理服务器（Proxy Server）
 
-10. HTML，CSS，JavaScript
+由于互联网的分层性质，实际上我们的请求和响应会在它们到达目的地之前经过多个中介。代理服务器就是这些中介，它在客户端和终端服务器之间**转发请求和响应**。
+
+1. 内容缓存：caching proxy 缓存代理服务器，它的功能就是缓存经常请求的内容，当同样的内容被再次请求时，可以更快地提供服务。
+2. 负载均衡：load balancing proxy 负载均衡代理服务器，在大型网络环境中，代理可以帮助分散请求到多个服务器，从而提高性能和可靠性。
+3. extended：住宅代理服务器（residential proxy）
+
+### HTML，CSS，JavaScript
 
 HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就是为了获取网页的内容，解析网页的数据。
 
 关于 JavaScript：许多现代网站采用 Ajax、前端模块化工具构建，整个页面使用 JavaScript 渲染，这使得原始 HTML 是一个空壳。因而你从浏览器看到的可能并不是你得到的。在这些特定情况下，可能需要分析源代码后台 Ajax 接口，也可使用 `Selenium`，`Splash`等库模拟 JavaScript 渲染。
 
-11. HTTP 的消息结构
+### HTTP 的消息结构
 
-    我们可以看下主要的流程和概念：
+我们可以看下主要的流程和概念：
 
-    - 请求
-      - 地址（URL）和请求方式（HTTP 动词）
-      - 请求头（request header）：用来描述请求和发送者的一些信息。
-      - 请求体：一般承载的内容是 POST 请求中的表单数据，对于 GET 请求，请求体则为空。
-    - 响应
-      - 响应状态码
-      - 响应头
-      - 响应体：这是最关键的部分，响应的正文数据都存在于响应体中，例如请求网页时。响应体可能时网页的 HTML 代码；请求一张图片时，响应体就是图片的二进制数据。我们做爬虫请求网页时，要解析的内容就是响应体。
+- 请求
+  - 地址（URL）和请求方式（HTTP 动词）
+  - 请求头（request header）：用来描述请求和发送者的一些信息。
+  - 请求体：一般承载的内容是 POST 请求中的表单数据，对于 GET 请求，请求体则为空。
+- 响应
+  - 响应状态码
+  - 响应头
+  - 响应体：这是最关键的部分，响应的正文数据都存在于响应体中，例如请求网页时。响应体可能时网页的 HTML 代码；请求一张图片时，响应体就是图片的二进制数据。我们做爬虫请求网页时，要解析的内容就是响应体。
 
-12. 正则表达式
+### 正则表达式
 
 - 字符
 
@@ -208,7 +212,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   result=re.match('^He.*(\d+).*Demo$', content)
   print(result.group(1))
   # 此时由于贪婪匹配，分组引用后的只有数字7
-  
+
   # 若使用非贪婪匹配
   result=re.match('^He.*?(\d).*?Demo$')
   ```
@@ -281,78 +285,131 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
       print(result.strip())
   ```
 
-13. `Xpath`路径语言
+### XPath 路径语言
 
-    在`XPath`中，有七种类型的**节点**：元素、属性、文本、命名空间、处理指令、注释以及文档节点。元素是一种节点类型，通常指具有开始标签和结束标签的部分。
+在`XPath`中，有七种类型的**节点**：元素、属性、文本、命名空间、处理指令、注释以及文档节点。元素是一种节点类型，通常指具有开始标签和结束标签的部分。
 
-    ```xml
-    <bookstore> (元素节点，同时是根元素)
-    
-    <author>J K. Rowling</author> (元素节点)
-        
-    J K. Rowling (文本节点)
-    
-    lang="en" (属性节点)
-    ```
-    
-    XML 文档是被作为节点树来对待的：
-    
-    ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
-     
-    <bookstore>
-     
-    <book>
-      <title lang="eng">Harry Potter</title>
-      <price>29.99</price>
-    </book>
-     
-    <book>
-      <title lang="eng">Learning XML</title>
-      <price>39.95</price>
-    </book>
-     
-    </bookstore>
-    ```
-    
-    - 选取节点
-    
-      | 表达式   | 描述                                                         |
-      | :------- | :----------------------------------------------------------- |
-      | nodename | 选取当前节点的所有名为`nodename`的**子元素**。               |
-      | /        | 从文档的**根元素**开始选择节点。                             |
-      | //       | 在**整个文档中**搜索匹配的节点，不考虑它们在文档中的具体位置。 |
-      | .        | 选取当前节点。                                               |
-      | ..       | 选取当前节点的父节点。                                       |
-      | @        | 选取属性。                                                   |
-      
-      以下是一些示例：
-      
-      | 路径表达式      | 结果                                                         |
-      | :-------------- | :----------------------------------------------------------- |
-      | bookstore       | 从当前节点选取所有名为`bookstore`的子元素。                  |
-      | /bookstore      | 选择文档的根元素节点下的所有名为`bookstore`的子元素。        |
-      | bookstore/book  | 从当前节点开始，选择所有名为`bookstore`的子元素中的所有名为`book`的子元素。 |
-      | //book          | 选取文档中所有名为`book`的元素，不考虑它们的具体位置或层级。 |
-      | bookstore//book | 从当前节点开始，选择所有名为`bookstore`的子元素，并从这些`bookstore`元素中选择所有后代中的`book`元素，不管这些`book`元素位于`bookstore`下的哪个层级。 |
-      | //@lang         | 选取名为lang的所有**属性**。                                 |
-      
-    - 谓语
-    
-      谓语用来查找**某个特定的节点**或者**包含某个指定的值的节点**。
-    
-      谓语被嵌在方括号中。一些常见的例子有：
-    
-      | 路径表达式                          | 结果                                                         |
-      | :---------------------------------- | :----------------------------------------------------------- |
-      | /bookstore/book[1]                  | 选取属于 bookstore 子元素的第一个 book 元素。                |
-      | /bookstore/book[last()]             | 选取属于 bookstore 子元素的最后一个 book 元素。              |
-      | /bookstore/book[last()-1]           | 选取属于 bookstore 子元素的倒数第二个 book 元素。            |
-      | /bookstore/book[position()<3]       | 选取最前面的两个属于 bookstore 元素的子元素的 book 元素。    |
-      | //title[@lang]                      | 选取所有拥有名为 lang 的属性的 title 元素。                  |
-      | //title[@lang='eng']                | 选取所有 title 元素，且这些元素拥有值为 eng 的 lang 属性。   |
-      | /bookstore/book[price>35.00]        | 选取 bookstore 元素的所有 book 元素，且其中的 price 元素的值须大于 35.00。 |
-      | /bookstore/book[price>35.00]//title | 选取 bookstore 元素中的 book 元素的**所有 title 元素**，且其中 book 的 price 元素的值须大于 35.00。 |
+```xml
+<bookstore> (元素节点，同时是根元素)
+
+<author>J K. Rowling</author> (元素节点)
+
+J K. Rowling (文本节点)
+
+lang="en" (属性节点)
+```
+
+XML 文档是被作为节点树来对待的：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<bookstore>
+
+<book>
+  <title lang="eng">Harry Potter</title>
+  <price>29.99</price>
+</book>
+
+<book>
+  <title lang="eng">Learning XML</title>
+  <price>39.95</price>
+</book>
+
+</bookstore>
+```
+
+- 选取节点
+
+  在下面的表格中，我们列出了一些路径表达式，以及这些表达式的结果：
+
+  | 表达式   | 描述                                                                                                                                                                      |
+  | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | nodename | 选取当前节点的所有名为`nodename`的**子元素**。                                                                                                                            |
+  | /        | 当出现在表达式的开始时（如`/node`），它表示从根元素开始的绝对路径；当它出现在路径的中间或后面时（如`node1/node2`或`//node1/node2`），表示相对于前面部分指定的元素的路径。 |
+  | //       | 在**整个文档中**搜索匹配的节点，不考虑它们在文档中的具体位置。                                                                                                            |
+  | .        | 选取当前节点。                                                                                                                                                            |
+  | ..       | 选取当前节点的父节点。                                                                                                                                                    |
+  | @        | 选取属性。                                                                                                                                                                |
+
+- 选取未知节点
+
+  XPath 还支持通配符用来选取未知的 XML 元素。
+
+  | 通配符 | 描述                     |
+  | :----- | :----------------------- |
+  | \*     | 匹配任何**元素节点**。   |
+  | @\*    | 匹配任何**属性节点**。   |
+  | node() | 匹配**任何类型的节点**。 |
+
+  以下是一些示例：
+
+  | 路径表达式      | 结果                                                                                                                                                  |
+  | :-------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | /bookstore/\*   | 选取 bookstore 元素的所有子元素。                                                                                                                     |
+  | **//\***        | **选取文档中的所有元素。**                                                                                                                            |
+  | bookstore       | 从当前节点选取所有名为`bookstore`的子元素。                                                                                                           |
+  | bookstore/book  | 从当前节点开始，选择所有名为`bookstore`的子元素中的所有名为`book`的子元素。                                                                           |
+  | //book          | 选取文档中所有名为`book`的元素，不考虑它们的具体位置或层级。                                                                                          |
+  | bookstore//book | 从当前节点开始，选择所有名为`bookstore`的子元素，并从这些`bookstore`元素中选择所有后代中的`book`元素，不管这些`book`元素位于`bookstore`下的哪个层级。 |
+  | //@lang         | 选取名为 lang 的所有**属性**，获得的是该属性的值。                                                                                                    |
+
+- 谓语
+
+  谓语用来查找**某个特定的节点**或者**包含某个指定的值的节点**。
+
+  谓语被嵌在方括号中。一些常见的例子有：
+
+  | 路径表达式                          | 结果                                                                                                |
+  | :---------------------------------- | :-------------------------------------------------------------------------------------------------- |
+  | /bookstore/book[1]                  | 选取属于 bookstore 子元素的第一个 book 元素。                                                       |
+  | /bookstore/book[last()]             | 选取属于 bookstore 子元素的最后一个 book 元素。                                                     |
+  | /bookstore/book[last()-1]           | 选取属于 bookstore 子元素的倒数第二个 book 元素。                                                   |
+  | /bookstore/book[position()<3]       | 选取最前面的两个属于 bookstore 元素的子元素的 book 元素。                                           |
+  | //title[@lang]                      | 选取所有拥有名为 lang 的属性的 title 元素。                                                         |
+  | //title[@*]                         | 选取所有**带有属性**的 title 元素。                                                                 |
+  | //title[@lang='eng']                | 选取所有 title 元素，且这些元素拥有值为 eng 的 lang 属性。                                          |
+  | /bookstore/book[price>35.00]        | 选取 bookstore 元素的所有 book 元素，且其中的 price 元素的值须大于 35.00。                          |
+  | /bookstore/book[price>35.00]//title | 选取 bookstore 元素中的 book 元素的**所有 title 元素**，且其中 book 的 price 元素的值须大于 35.00。 |
+
+- 轴
+
+  轴可定义相对于当前节点的节点集。
+
+  | 轴名称             | 结果                                                     |
+  | :----------------- | :------------------------------------------------------- |
+  | **ancestor**       | 选取当前节点的所有先辈（父、祖父等）。                   |
+  | ancestor-or-self   | 选取当前节点的所有先辈（父、祖父等）以及当前节点本身。   |
+  | **attribute**      | 选取当前节点的所有属性。                                 |
+  | **child**          | 选取当前节点的所有子元素。                               |
+  | **descendant**     | 选取当前节点的所有后代元素（子、孙等）。                 |
+  | descendant-or-self | 选取当前节点的所有后代元素（子、孙等）以及当前节点本身。 |
+  | **following**      | 选取文档中当前节点的**结束标签之后**的**所有**节点。     |
+  | following-sibling  | 选取当前节点之后的所有**兄弟节点**（同级）               |
+  | namespace          | 选取当前节点的所有命名空间节点。                         |
+  | **parent**         | 选取当前节点的父节点。                                   |
+  | **preceding**      | 选取文档中当前节点的**开始标签之前**的所有节点。         |
+  | preceding-sibling  | 选取当前节点之前的所有同级节点。                         |
+  | self               | 选取当前节点。                                           |
+
+- 运算符
+
+  | 运算符 | 描述           | 实例                      | 返回值                                                              |
+  | :----- | :------------- | :------------------------ | :------------------------------------------------------------------ |
+  | **\|** | 计算两个节点集 | //book \| //cd            | 返回所有拥有 book 和 cd 元素的节点集                                |
+  | +      | 加法           | 6 + 4                     | 10                                                                  |
+  | -      | 减法           | 6 - 4                     | 2                                                                   |
+  | \*     | 乘法           | 6 \* 4                    | 24                                                                  |
+  | div    | 除法           | 8 div 4                   | 2                                                                   |
+  | **=**  | 等于           | price=9.80                | 如果 price 是 9.80，则返回 true。如果 price 是 9.90，则返回 false。 |
+  | **!=** | 不等于         | price!=9.80               | 如果 price 是 9.90，则返回 true。如果 price 是 9.80，则返回 false。 |
+  | <      | 小于           | price<9.80                | 如果 price 是 9.00，则返回 true。如果 price 是 9.90，则返回 false。 |
+  | <=     | 小于或等于     | price<=9.80               | 如果 price 是 9.00，则返回 true。如果 price 是 9.90，则返回 false。 |
+  | >      | 大于           | price>9.80                | 如果 price 是 9.90，则返回 true。如果 price 是 9.80，则返回 false。 |
+  | >=     | 大于或等于     | price>=9.80               | 如果 price 是 9.90，则返回 true。如果 price 是 9.70，则返回 false。 |
+  | or     | 或             | price=9.80 or price=9.70  | 如果 price 是 9.80，则返回 true。如果 price 是 9.50，则返回 false。 |
+  | and    | 与             | price>9.00 and price<9.90 | 如果 price 是 9.80，则返回 true。如果 price 是 8.50，则返回 false。 |
+  | mod    | 计算除法的余数 | 5 mod 2                   | 1                                                                   |
 
 ---
 
@@ -461,7 +518,7 @@ import requests as r
      ```py
      import requests as r
      resp=r.get('https://scrape.center/favicon.ico')
-     
+
      with open('images/favicon.ico', 'wb') as f:
        f.write(resp.content)
 
@@ -469,7 +526,7 @@ import requests as r
      files={
        'icon':'images/favicon.ico'	# the address
      }
-    
+
      resp=r.post('https://www.httpbin.org/post', files=files)
      print(resp.text)
      ```
@@ -519,7 +576,7 @@ resp=r.get(url=base_url, params=params)
    headers={
      'Cookie':cookie
    }
-   
+
    resp=r.get('https://github.com/', headers=headers)
    print(resp.text)
    ```
@@ -599,10 +656,145 @@ print(resp.text)
 
 前置知识有简短介绍。这里不再赘述。正则表达式的写法过于繁琐，且一旦有一个地方写错了，可能就会导致匹配失败。
 
+### XPath 路径匹配
+
 #### lxml
 
-正则表达式虽然功能强大，但确实存在编写复杂且容易出错的问题，特别是在处理结构化的数据，如网页文档时。相比之下，使用`XPath`和CSS选择器进行节点定位更为高效和直观。
+正则表达式虽然功能强大，但确实存在编写复杂且容易出错的问题，特别是在处理结构化的数据，如网页文档时。相比之下，使用`XPath`和 CSS 选择器进行节点定位更为高效和直观。
 
-`XPath`，即XML路径语言，是一种用于定位XML文档中节点的语言，也广泛用于HTML文档搜索。通过定义具体的路径表达式，`XPath`能够高效地定位到文档中的特定部分，极大地简化了数据提取过程。
+`XPath`，即 XML 路径语言，是一种用于定位 XML 文档中节点的语言，也广泛用于 HTML 文档搜索。通过定义具体的路径表达式，`XPath`能够高效地定位到文档中的特定部分，极大地简化了数据提取过程。
 
-在Python中，我们常用`lxml`库来配合`XPath`进行HTML文档的解析。`lxml`是一个功能强大且易于使用的库，它不仅支持`XPath`，还支持CSS选择器，使得从HTML文档中提取数据变得更加简单。
+在 Python 中，我们常用`lxml`库来配合`XPath`进行 HTML 文档的解析。`lxml`是一个功能强大且易于使用的库，它不仅支持`XPath`，还支持 CSS 选择器，使得从 HTML 文档中提取数据变得更加简单。
+
+我们将使用`lxml`库的`etree`模块。
+
+```py
+from lxml import etree
+```
+
+##### 构造 XPath 解析对象
+
+当我们获得的是 HTML 文本时，可以接着调用 HTML 类进行初始化，这样就成功构造了一个 XPath 对象：
+
+```py
+import requests as r
+from lxml import etree
+resp=r.get('https://www.baidu.com')
+html=etree.HTML(resp.text)
+```
+
+`etree`模块可以自动修正 HTML 文本，之后调用`tostring`方法即可输出修正后的 HTML 代码，但是结果是`bytes`类型，于是利用`decode`方法将其转换成`str`类型：
+
+```py
+text=etree.tostring(html)
+print(etree.decode('uft-8'))
+```
+
+当我们拥有的是 HTML 或 XML 文件时，构造 XPath 对象需要另外一个函数：`etree.parse()`：
+
+```py
+html=etree.parse('test.html', etree.HTMLParser())
+text=html.tostring(html)
+print(text.decode('utf-8'))
+```
+
+##### 使用 XPath 进行解析
+
+当构造好 XPath 解析对象后，我们对其进行解析`xx.xpath('路径语法')`，获得列表对象。
+
+大部分 XPath 路径语法已经在前置知识部分介绍过，这里稍作扩展：
+
+1. 提取文字和属性值
+
+   这是声明的 HTML 文本：
+
+   ```py
+   text = '''
+   <div>
+       <ul>
+            <li class="item-0"><a href="link1.html">first item</a></li>
+            <li class="item-1"><a href="link2.html">second item</a></li>
+            <li class="item-inactive"><a href="link3.html">third item</a></li>
+            <li class="item-1"><a href="link4.html">fourth item</a></li>
+            <li class="item-0"><a href="link5.html">fifth item</a>
+        </ul>
+    </div>
+   ```
+
+   提取文字使用`text()`
+
+   ```py
+   from lxml import etree
+   html=etree.HTML(text)
+   result=html.xpath('//li[@clss="item-inactive"]/a/text()')
+   print(result)
+   ```
+
+   提取属性：
+
+   ```py
+   result=html.xpath('//li/@class')
+   for attr in result:
+       print(attr)
+   ```
+
+   当某一元素存在同一属性多值的情况，要使用`contains`方法：
+
+   ```py
+   text='''
+   <li class="li li-first"><a href="link.html">first item</a></li>
+   '''
+   ```
+
+   ```py
+   result=html.xpath('//li[contains(@class, "li")]/a/text()')
+   print(result)
+   # 这时若使用 html.xpath('//li[@class="li"]') 则只会获得空列表
+   ```
+
+   若某一元素存在多个属性的情况，要学会使用 XPath 运算符，如`|`。
+
+2. 善用 XPath 轴
+
+   注意轴的使用方法
+
+   ```py
+   result=html.xpath('//li[1]/following-sibling::*/attribute::*')
+   print(result)
+   ```
+
+### Beatiful Soup
+
+前面已经介绍过正则表达式和 XPath 路径，现在还有更为简单的方法：`Beautiful Soup`。
+
+`Beautiful Soup`是 Python 的一个 HTML 或 XML**解析库**，它提供一些**简单的，Python 式的函数**处理导航，搜索，修改分析树等功能。它是一个工具箱，通过解析文档为用户提供需要抓取的数据，因为简单，所以无需很多代码就可以写出一个完整的应用程序。
+
+但实际上`Beautiful Soup`在解析时是依赖解析器的，我们一般会使用**LXML 解析器**，因为它又解析 HTML 和 XML 的功能，而且速度快，容错能力强。
+
+#### 构造 Beautiful Soup 对象
+
+对于一个 HTML 文本字符串，我们可以先将其传给`BeautifulSoup()`函数，然后再指定解析器类型。对于那些非标准的 HTML 字符串，它在此过程中会被自动更正为正确的格式。
+
+```py
+html = """
+<html><head><title>The Dormouse's story</title></head>
+<body>
+<p class="title" name="dromouse"><b>The Dormouse's story</b></p>
+<p class="story">Once upon a time there were three little sisters; and their names were
+<a href="http://example.com/elsie" class="sister" id="link1"><!-- Elsie --></a>,
+<a href="http://example.com/lacie" class="sister" id="link2">Lacie</a> and
+<a href="http://example.com/tillie" class="sister" id="link3">Tillie</a>;
+and they lived at the bottom of a well.</p>
+<p class="story">...</p>
+"""
+from bs4 import BeautifulSoup
+soup=Beautiful(html, 'lxml')
+# 指定解析对象和解析器类型
+```
+
+然后使用`prettify`方法把要解析的字符串以标准的缩进格式输出：
+
+```py
+print(soup)
+print(soup.prettify())
+```
