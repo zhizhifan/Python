@@ -212,7 +212,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   result=re.match('^He.*(\d+).*Demo$', content)
   print(result.group(1))
   # 此时由于贪婪匹配，分组引用后的只有数字7
-
+  
   # 若使用非贪婪匹配
   result=re.match('^He.*?(\d).*?Demo$')
   ```
@@ -518,7 +518,7 @@ import requests as r
      ```py
      import requests as r
      resp=r.get('https://scrape.center/favicon.ico')
-
+     
      with open('images/favicon.ico', 'wb') as f:
        f.write(resp.content)
 
@@ -526,7 +526,7 @@ import requests as r
      files={
        'icon':'images/favicon.ico'	# the address
      }
-
+    
      resp=r.post('https://www.httpbin.org/post', files=files)
      print(resp.text)
      ```
@@ -576,7 +576,7 @@ resp=r.get(url=base_url, params=params)
    headers={
      'Cookie':cookie
    }
-
+   
    resp=r.get('https://github.com/', headers=headers)
    print(resp.text)
    ```
@@ -687,14 +687,14 @@ html=etree.HTML(resp.text)
 
 ```py
 text=etree.tostring(html)
-print(etree.decode('uft-8'))
+print(text.decode('uft-8'))
 ```
 
 当我们拥有的是 HTML 或 XML 文件时，构造 XPath 对象需要另外一个函数：`etree.parse()`：
 
 ```py
 html=etree.parse('test.html', etree.HTMLParser())
-text=html.tostring(html)
+text=etree.tostring(html)
 print(text.decode('utf-8'))
 ```
 
@@ -719,6 +719,7 @@ print(text.decode('utf-8'))
             <li class="item-0"><a href="link5.html">fifth item</a>
         </ul>
     </div>
+    '''
    ```
 
    提取文字使用`text()`
@@ -776,7 +777,7 @@ print(text.decode('utf-8'))
 对于一个 HTML 文本字符串，我们可以先将其传给`BeautifulSoup()`函数，然后再指定解析器类型。对于那些非标准的 HTML 字符串，它在此过程中会被自动更正为正确的格式。
 
 ```py
-html = """
+html = '''
 <html><head><title>The Dormouse's story</title></head>
 <body>
 <p class="title" name="dromouse"><b>The Dormouse's story</b></p>
@@ -786,7 +787,9 @@ html = """
 <a href="http://example.com/tillie" class="sister" id="link3">Tillie</a>;
 and they lived at the bottom of a well.</p>
 <p class="story">...</p>
-"""
+'''
+
+
 from bs4 import BeautifulSoup
 soup=Beautiful(html, 'lxml')
 # 指定解析对象和解析器类型
@@ -798,3 +801,5 @@ soup=Beautiful(html, 'lxml')
 print(soup)
 print(soup.prettify())
 ```
+
+后代元素包括文本问题，空格处理（换行符）问题
