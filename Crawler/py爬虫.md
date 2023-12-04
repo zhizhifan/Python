@@ -789,7 +789,6 @@ and they lived at the bottom of a well.</p>
 <p class="story">...</p>
 '''
 
-
 from bs4 import BeautifulSoup
 soup=Beautiful(html, 'lxml')
 # 指定解析对象和解析器类型
