@@ -964,6 +964,41 @@ print(soup.prettify())
   print(soup.select('#first-anchor'))
   ```
 
-#### 获取属性
+#### 提取信息
 
-经过选择器选择的结果都是这种Tag类型，Tag具有一些属性，调用该属性可以获得相应信息。
+经过选择器选择的结果都是Tag类型，Tag具有一些属性，调用该属性可以获得相应信息。
+
+- 获取名称
+
+  调用`name`属性获得节点名称
+
+- 获取属性
+
+  调用`attrs`属性获得节点的属性
+
+  ```py
+  print(soup.select(class_='panel-body').attrs)
+  # 获取全部属性，返回的类型是字典
+  print(soup.select(class_='panel-body').attrs['class'])
+  # 获取指定的属性内容
+  print(soup.select(class_='panel-body')['class'])
+  # 这种写法也可以
+  ```
+
+  值得注意的是，某些属性的值是唯一的，于是返回结果就是单个字符串。但对于`class`属性，一个元素可能同时拥有多个class，所以返回的就是列表（尽管它们目前可能只指定了一个class）。
+
+- 获取内容
+
+  调用`string`属性，或者使用`get_text()`。
+
+  ```py
+  for element in soup.select('#list-1 .element'):
+    print(element.string, element.get_text())
+  ```
+
+### Pyquery
+
+Beautiful Soup对于CSS选择器的功能没有那么强大，如果对于CSS选择器更熟悉的话，`pyquery`是个更好的选择。
+
+
+
