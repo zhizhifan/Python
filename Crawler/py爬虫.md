@@ -801,4 +801,169 @@ print(soup)
 print(soup.prettify())
 ```
 
-后代元素包括文本问题，空格处理（换行符）问题
+#### 选择节点
+
+- 单个**元素节点**选择
+
+  ```py
+  html = """
+  <html>
+      <head>
+          <title>The Dormouse's story</title>
+      </head>
+      <body>
+          <p class="story">
+              Once upon a time there were three little sisters; and their names were
+              <a href="http://example.com/elsie" class="sister" id="link1">
+                  <span>Elsie</span>
+              </a>
+              <a href="http://example.com/lacie" class="sister" id="link2">Lacie</a>
+              and
+              <a href="http://example.com/tillie" class="sister" id="link3">Tillie</a>
+              and they lived at the bottom of a well.
+          </p>
+          <p class="story">...</p>
+  """
+  
+  from bs4 import BeautifulSoup
+  soup=BeautifulSoup(html, 'lxml')
+  
+  print(soup.title)
+  print(soup.p)
+  print(type(soup.title))
+  ```
+
+  直接调用元素节点的名称即可选择节点。当单个元素结构层次非常清晰时，可以选用这种方式来解析。关于该方法，需要注意两点：
+
+  1. 当有多个同一元素时，这种选择方式只会匹配到第一个匹配的元素节点，后面的都会被忽略。
+  2. 该类方法获得的对象都是`bs4.element.Tag`，这是`Beautiful Soup`中一个重要的数据结构，**经过选择器选择的结果都是这种Tag类型**，如`title`元素的选择结果是这样：`<title>The Dormouse's story</title>`，它是`bs4.element.Tag`对象。
+
+- 嵌套选择
+
+  嵌套选择有点类似于后代选择器：
+
+  ```py
+  print(soup.head.title)
+  # 选择head元素下的title元素，仍然是bs4.element.Tag对象
+  ```
+
+- 关联选择
+
+  这里需要注意的是，几乎所有关联选择默认选取的都是**节点**，也就是说不仅仅选择元素节点，文本、换行符（当换行符后面紧跟文本时，两者被当作同一个节点）会被视作节点被选中。
+
+  - 获取**子节点和子孙节点**
+
+    `children`属性用来选取直接子节点，返回的结果是生成器类型，可以转换成列表类型，或者直接for循环输出
+
+    ```py
+    for i, child in enumerate(soup.p.children):
+      print(i, child)
+    
+    print(list(soup.p.children))
+    ```
+
+    `descendants`属性用来选取所有子孙节点。它包括了后代节点本身以及它们的文本内容。返回结果仍然是生成器类型。
+
+    ```py
+    for i, descendant in enumerate(soup.p.descendants):
+        print(i, descendant)
+    ```
+
+  - 获取**父节点和祖先节点**
+
+    `parent`属性用来获取直接父节点，`parents`属性用来获取祖先节点。输出父节点或者祖先节点的全部内部内容。返回属性仍然是生成器类型。
+
+    ```py
+    for i, parent in enumerate(soup.p.parents):
+        print(i, parent)
+    ```
+
+  - 获取**兄弟节点**
+
+    总共可以用4种属性，`next-sibling`，`next-siblings`，`previous-sibling`，`previous-siblings`。
+
+- 调用方法选择器
+
+  之前介绍的方法都不是很好的选择，因为格式化输出总会带来一些换行符号，导致不必要的误解和后续操作。所以我更推荐`find_all`和`find`方法。
+
+  `find_all`，顾名思义就是查询所有符合条件的元素，可以给它传入一些属性或文本来得到符合条件的元素，它的API如下：
+
+  ```py
+  find_all(name, attrs, recursive, text, **kwargs)
+  ```
+
+  其中`attrs`参数需要传入字典：
+
+  ```py
+  html='''
+  <div class="panel">
+      <div class="panel-heading">
+          <h4>Hello</h4>
+      </div>
+      <div class="panel-body">
+          <ul class="list" id="list-1">
+              <li class="element">Foo</li>
+              <li class="element">Bar</li>
+              <li class="element">Jay</li>
+          </ul>
+          <ul class="list list-small" id="list-2">
+              <li class="element">Foo</li>
+              <li class="element">Bar</li>
+          </ul>
+      </div>
+  </div>
+  '''
+  
+  from bs4 import BeautifulSoup
+  soup=BeautifulSoup(html, 'lxml')
+  print(soup.find_all(name='ul', attrs={'id':'list-1'}))
+  # 最后所有符合查找条件的元素都被放置在列表当中，可以循环提取
+  print（type(soup.find_all(name='ul', attrs={'id':'list-1'}))
+  # 结果仍然是Tag类型
+  ```
+
+  `attrs`参数中一些常见的属性可以单独写出来，比如`class`和`id`属性，其中由于class是python中的关键字，所以需要改成`class_`的形式：
+
+  ```py
+  print(soup.find_all(class_='list'))
+  print(soup.find_all(id='list-1'))
+  ```
+
+  对于`text`参数用来查找符合匹配的**文本节点**，也就是说最后返回的是**文本内容的列表**，而不是Tag类型。参数可以传入字符串，或者正则表达式：
+
+  ```py
+  html='''
+  <div class="panel">
+      <div class="panel-body">
+          <a id="first-anchor">Hello, this is a link</a>
+          <a>Hello, this is a link, too</a>
+      </div>
+  </div>
+  '''
+  from bs4 import BeautifulSoup
+  soup=BeautifulSoup(html, 'lxml')
+  pattern=re.compile('link')
+  print(soup.find_all(text=pattern))
+  ```
+
+  `find`方法与`find_all`方法类似，只不过只能匹配第一个满足条件的节点。此外还有一些其他选择方法，这与前面是对应的：`find_parent`，`find_parents`，`find_next_sibling`，`find_next_siblings`，`find_previous_sibling`，`find_previous_siblings`，这些方法一般会结合嵌套选择，例如：
+
+  ```py
+  print(
+      soup.find(class_='list').find_parents()
+  )
+  ```
+
+- CSS选择器
+
+  Web开发中经常会用到CSS选择器，`BeautifulSoup`库也提供了`select`方法来实现此功能，匹配的对象仍然是Tag类型：
+
+  ```py
+  print(soup.select('.panel-body'))
+  print(soup.select('.panel-body a'))
+  print(soup.select('#first-anchor'))
+  ```
+
+#### 获取属性
+
+经过选择器选择的结果都是这种Tag类型，Tag具有一些属性，调用该属性可以获得相应信息。
