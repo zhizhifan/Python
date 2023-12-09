@@ -212,7 +212,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   result=re.match('^He.*(\d+).*Demo$', content)
   print(result.group(1))
   # 此时由于贪婪匹配，分组引用后的只有数字7
-  
+
   # 若使用非贪婪匹配
   result=re.match('^He.*?(\d).*?Demo$')
   ```
@@ -287,7 +287,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
 
 ### XPath 路径语言
 
-在`XPath`中，有七种类型的**节点**：元素、属性、文本、命名空间、处理指令、注释以及文档节点。元素是一种节点类型，通常指具有开始标签和结束标签的部分。
+在 `XPath`中，有七种类型的**节点**：元素、属性、文本、命名空间、处理指令、注释以及文档节点。元素是一种节点类型，通常指具有开始标签和结束标签的部分。
 
 ```xml
 <bookstore> (元素节点，同时是根元素)
@@ -323,14 +323,14 @@ XML 文档是被作为节点树来对待的：
 
   在下面的表格中，我们列出了一些路径表达式，以及这些表达式的结果：
 
-  | 表达式   | 描述                                                                                                                                                                      |
-  | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-  | nodename | 选取当前节点的所有名为`nodename`的**子元素**。                                                                                                                            |
-  | /        | 当出现在表达式的开始时（如`/node`），它表示从根元素开始的绝对路径；当它出现在路径的中间或后面时（如`node1/node2`或`//node1/node2`），表示相对于前面部分指定的元素的路径。 |
-  | //       | 在**整个文档中**搜索匹配的节点，不考虑它们在文档中的具体位置。                                                                                                            |
-  | .        | 选取当前节点。                                                                                                                                                            |
-  | ..       | 选取当前节点的父节点。                                                                                                                                                    |
-  | @        | 选取属性。                                                                                                                                                                |
+  | 表达式   | 描述                                                                                                                                                                         |
+  | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | nodename | 选取当前节点的所有名为 `nodename`的**子元素**。                                                                                                                              |
+  | /        | 当出现在表达式的开始时（如 `/node`），它表示从根元素开始的绝对路径；当它出现在路径的中间或后面时（如 `node1/node2`或 `//node1/node2`），表示相对于前面部分指定的元素的路径。 |
+  | //       | 在**整个文档中**搜索匹配的节点，不考虑它们在文档中的具体位置。                                                                                                               |
+  | .        | 选取当前节点。                                                                                                                                                               |
+  | ..       | 选取当前节点的父节点。                                                                                                                                                       |
+  | @        | 选取属性。                                                                                                                                                                   |
 
 - 选取未知节点
 
@@ -344,15 +344,15 @@ XML 文档是被作为节点树来对待的：
 
   以下是一些示例：
 
-  | 路径表达式      | 结果                                                                                                                                                  |
-  | :-------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | /bookstore/\*   | 选取 bookstore 元素的所有子元素。                                                                                                                     |
-  | **//\***        | **选取文档中的所有元素。**                                                                                                                            |
-  | bookstore       | 从当前节点选取所有名为`bookstore`的子元素。                                                                                                           |
-  | bookstore/book  | 从当前节点开始，选择所有名为`bookstore`的子元素中的所有名为`book`的子元素。                                                                           |
-  | //book          | 选取文档中所有名为`book`的元素，不考虑它们的具体位置或层级。                                                                                          |
-  | bookstore//book | 从当前节点开始，选择所有名为`bookstore`的子元素，并从这些`bookstore`元素中选择所有后代中的`book`元素，不管这些`book`元素位于`bookstore`下的哪个层级。 |
-  | //@lang         | 选取名为 lang 的所有**属性**，获得的是该属性的值。                                                                                                    |
+  | 路径表达式      | 结果                                                                                                                                                       |
+  | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | /bookstore/\*   | 选取 bookstore 元素的所有子元素。                                                                                                                          |
+  | **//\***        | **选取文档中的所有元素。**                                                                                                                                 |
+  | bookstore       | 从当前节点选取所有名为 `bookstore`的子元素。                                                                                                               |
+  | bookstore/book  | 从当前节点开始，选择所有名为 `bookstore`的子元素中的所有名为 `book`的子元素。                                                                              |
+  | //book          | 选取文档中所有名为 `book`的元素，不考虑它们的具体位置或层级。                                                                                              |
+  | bookstore//book | 从当前节点开始，选择所有名为 `bookstore`的子元素，并从这些 `bookstore`元素中选择所有后代中的 `book`元素，不管这些 `book`元素位于 `bookstore`下的哪个层级。 |
+  | //@lang         | 选取名为 lang 的所有**属性**，获得的是该属性的值。                                                                                                         |
 
 - 谓语
 
@@ -396,10 +396,10 @@ XML 文档是被作为节点树来对待的：
 
   | 运算符 | 描述           | 实例                      | 返回值                                                              |
   | :----- | :------------- | :------------------------ | :------------------------------------------------------------------ |
-  | **\|** | 计算两个节点集 | //book \| //cd            | 返回所有拥有 book 和 cd 元素的节点集                                |
+  | **\|** | 计算两个节点集 | //book\| //cd             | 返回所有拥有 book 和 cd 元素的节点集                                |
   | +      | 加法           | 6 + 4                     | 10                                                                  |
   | -      | 减法           | 6 - 4                     | 2                                                                   |
-  | \*     | 乘法           | 6 \* 4                    | 24                                                                  |
+  | \*     | 乘法           | 6\* 4                     | 24                                                                  |
   | div    | 除法           | 8 div 4                   | 2                                                                   |
   | **=**  | 等于           | price=9.80                | 如果 price 是 9.80，则返回 true。如果 price 是 9.90，则返回 false。 |
   | **!=** | 不等于         | price!=9.80               | 如果 price 是 9.90，则返回 true。如果 price 是 9.80，则返回 false。 |
@@ -518,7 +518,7 @@ import requests as r
      ```py
      import requests as r
      resp=r.get('https://scrape.center/favicon.ico')
-     
+
      with open('images/favicon.ico', 'wb') as f:
        f.write(resp.content)
 
@@ -526,7 +526,7 @@ import requests as r
      files={
        'icon':'images/favicon.ico'	# the address
      }
-    
+
      resp=r.post('https://www.httpbin.org/post', files=files)
      print(resp.text)
      ```
@@ -576,7 +576,7 @@ resp=r.get(url=base_url, params=params)
    headers={
      'Cookie':cookie
    }
-   
+
    resp=r.get('https://github.com/', headers=headers)
    print(resp.text)
    ```
@@ -660,13 +660,13 @@ print(resp.text)
 
 #### lxml
 
-正则表达式虽然功能强大，但确实存在编写复杂且容易出错的问题，特别是在处理结构化的数据，如网页文档时。相比之下，使用`XPath`和 CSS 选择器进行节点定位更为高效和直观。
+正则表达式虽然功能强大，但确实存在编写复杂且容易出错的问题，特别是在处理结构化的数据，如网页文档时。相比之下，使用 `XPath`和 CSS 选择器进行节点定位更为高效和直观。
 
 `XPath`，即 XML 路径语言，是一种用于定位 XML 文档中节点的语言，也广泛用于 HTML 文档搜索。通过定义具体的路径表达式，`XPath`能够高效地定位到文档中的特定部分，极大地简化了数据提取过程。
 
-在 Python 中，我们常用`lxml`库来配合`XPath`进行 HTML 文档的解析。`lxml`是一个功能强大且易于使用的库，它不仅支持`XPath`，还支持 CSS 选择器，使得从 HTML 文档中提取数据变得更加简单。
+在 Python 中，我们常用 `lxml`库来配合 `XPath`进行 HTML 文档的解析。`lxml`是一个功能强大且易于使用的库，它不仅支持 `XPath`，还支持 CSS 选择器，使得从 HTML 文档中提取数据变得更加简单。
 
-我们将使用`lxml`库的`etree`模块。
+我们将使用 `lxml`库的 `etree`模块。
 
 ```py
 from lxml import etree
@@ -683,7 +683,7 @@ resp=r.get('https://www.baidu.com')
 html=etree.HTML(resp.text)
 ```
 
-`etree`模块可以自动修正 HTML 文本，之后调用`tostring`方法即可输出修正后的 HTML 代码，但是结果是`bytes`类型，于是利用`decode`方法将其转换成`str`类型：
+`etree`模块可以自动修正 HTML 文本，之后调用 `tostring`方法即可输出修正后的 HTML 代码，但是结果是 `bytes`类型，于是利用 `decode`方法将其转换成 `str`类型：
 
 ```py
 text=etree.tostring(html)
@@ -700,7 +700,7 @@ print(text.decode('utf-8'))
 
 ##### 使用 XPath 进行解析
 
-当构造好 XPath 解析对象后，我们对其进行解析`xx.xpath('路径语法')`，获得列表对象。
+当构造好 XPath 解析对象后，我们对其进行解析 `xx.xpath('路径语法')`，获得列表对象。
 
 大部分 XPath 路径语法已经在前置知识部分介绍过，这里稍作扩展：
 
@@ -722,7 +722,7 @@ print(text.decode('utf-8'))
     '''
    ```
 
-   提取文字使用`text()`
+   提取文字使用 `text()`
 
    ```py
    from lxml import etree
@@ -739,7 +739,7 @@ print(text.decode('utf-8'))
        print(attr)
    ```
 
-   当某一元素存在同一属性多值的情况，要使用`contains`方法：
+   当某一元素存在同一属性多值的情况，要使用 `contains`方法：
 
    ```py
    text='''
@@ -753,7 +753,7 @@ print(text.decode('utf-8'))
    # 这时若使用 html.xpath('//li[@class="li"]') 则只会获得空列表
    ```
 
-   若某一元素存在多个属性的情况，要学会使用 XPath 运算符，如`|`。
+   若某一元素存在多个属性的情况，要学会使用 XPath 运算符，如 `|`。
 
 2. 善用 XPath 轴
 
@@ -770,11 +770,11 @@ print(text.decode('utf-8'))
 
 `Beautiful Soup`是 Python 的一个 HTML 或 XML**解析库**，它提供一些**简单的，Python 式的函数**处理导航，搜索，修改分析树等功能。它是一个工具箱，通过解析文档为用户提供需要抓取的数据，因为简单，所以无需很多代码就可以写出一个完整的应用程序。
 
-但实际上`Beautiful Soup`在解析时是依赖解析器的，我们一般会使用**LXML 解析器**，因为它又解析 HTML 和 XML 的功能，而且速度快，容错能力强。
+但实际上 `Beautiful Soup`在解析时是依赖解析器的，我们一般会使用**LXML 解析器**，因为它又解析 HTML 和 XML 的功能，而且速度快，容错能力强。
 
 #### 构造 Beautiful Soup 对象
 
-对于一个 HTML 文本字符串，我们可以先将其传给`BeautifulSoup()`函数，然后再指定解析器类型。对于那些非标准的 HTML 字符串，它在此过程中会被自动更正为正确的格式。
+对于一个 HTML 文本字符串，我们可以先将其传给 `BeautifulSoup()`函数，然后再指定解析器类型。对于那些非标准的 HTML 字符串，它在此过程中会被自动更正为正确的格式。
 
 ```py
 html = '''
@@ -794,7 +794,7 @@ soup=Beautiful(html, 'lxml')
 # 指定解析对象和解析器类型
 ```
 
-然后使用`prettify`方法把要解析的字符串以标准的缩进格式输出：
+然后使用 `prettify`方法把要解析的字符串以标准的缩进格式输出：
 
 ```py
 print(soup)
@@ -824,19 +824,19 @@ print(soup.prettify())
           </p>
           <p class="story">...</p>
   """
-  
+
   from bs4 import BeautifulSoup
   soup=BeautifulSoup(html, 'lxml')
-  
+
   print(soup.title)
   print(soup.p)
   print(type(soup.title))
-  ```
 
   直接调用元素节点的名称即可选择节点。当单个元素结构层次非常清晰时，可以选用这种方式来解析。关于该方法，需要注意两点：
 
   1. 当有多个同一元素时，这种选择方式只会匹配到第一个匹配的元素节点，后面的都会被忽略。
-  2. 该类方法获得的对象都是`bs4.element.Tag`，这是`Beautiful Soup`中一个重要的数据结构，**经过选择器选择的结果都是这种Tag类型**，如`title`元素的选择结果是这样：`<title>The Dormouse's story</title>`，它是`bs4.element.Tag`对象。
+  2. 该类方法获得的对象都是 `bs4.element.Tag`，这是 `Beautiful Soup`中一个重要的数据结构，**经过选择器选择的结果都是这种Tag类型**，如 `title`元素的选择结果是这样：`<title>The Dormouse's story</title>`，它是 `bs4.element.Tag`对象。
+  ```
 
 - 嵌套选择
 
@@ -853,12 +853,12 @@ print(soup.prettify())
 
   - 获取**子节点和子孙节点**
 
-    `children`属性用来选取直接子节点，返回的结果是生成器类型，可以转换成列表类型，或者直接for循环输出
+    `children`属性用来选取直接子节点，返回的结果是生成器类型，可以转换成列表类型，或者直接 for 循环输出
 
     ```py
     for i, child in enumerate(soup.p.children):
       print(i, child)
-    
+
     print(list(soup.p.children))
     ```
 
@@ -880,19 +880,19 @@ print(soup.prettify())
 
   - 获取**兄弟节点**
 
-    总共可以用4种属性，`next-sibling`，`next-siblings`，`previous-sibling`，`previous-siblings`。
+    总共可以用 4 种属性，`next-sibling`，`next-siblings`，`previous-sibling`，`previous-siblings`。
 
 - 调用方法选择器
 
-  之前介绍的方法都不是很好的选择，因为格式化输出总会带来一些换行符号，导致不必要的误解和后续操作。所以我更推荐`find_all`和`find`方法。
+  之前介绍的方法都不是很好的选择，因为格式化输出总会带来一些换行符号，导致不必要的误解和后续操作。所以我更推荐 `find_all`和 `find`方法。
 
-  `find_all`，顾名思义就是查询所有符合条件的元素，可以给它传入一些属性或文本来得到符合条件的元素，它的API如下：
+  `find_all`，顾名思义就是查询所有符合条件的元素，可以给它传入一些属性或文本来得到符合条件的元素，它的 API 如下：
 
   ```py
   find_all(name, attrs, recursive, text, **kwargs)
   ```
 
-  其中`attrs`参数需要传入字典：
+  其中 `attrs`参数需要传入字典：
 
   ```py
   html='''
@@ -913,7 +913,7 @@ print(soup.prettify())
       </div>
   </div>
   '''
-  
+
   from bs4 import BeautifulSoup
   soup=BeautifulSoup(html, 'lxml')
   print(soup.find_all(name='ul', attrs={'id':'list-1'}))
@@ -922,14 +922,14 @@ print(soup.prettify())
   # 结果仍然是Tag类型
   ```
 
-  `attrs`参数中一些常见的属性可以单独写出来，比如`class`和`id`属性，其中由于class是python中的关键字，所以需要改成`class_`的形式：
+  `attrs`参数中一些常见的属性可以单独写出来，比如 `class`和 `id`属性，其中由于 class 是 python 中的关键字，所以需要改成 `class_`的形式：
 
   ```py
   print(soup.find_all(class_='list'))
   print(soup.find_all(id='list-1'))
   ```
 
-  对于`text`参数用来查找符合匹配的**文本节点**，也就是说最后返回的是**文本内容的列表**，而不是Tag类型。参数可以传入字符串，或者正则表达式：
+  对于 `text`参数用来查找符合匹配的**文本节点**，也就是说最后返回的是**文本内容的列表**，而不是 Tag 类型。参数可以传入字符串，或者正则表达式：
 
   ```py
   html='''
@@ -946,7 +946,7 @@ print(soup.prettify())
   print(soup.find_all(text=pattern))
   ```
 
-  `find`方法与`find_all`方法类似，只不过只能匹配第一个满足条件的节点。此外还有一些其他选择方法，这与前面是对应的：`find_parent`，`find_parents`，`find_next_sibling`，`find_next_siblings`，`find_previous_sibling`，`find_previous_siblings`，这些方法一般会结合嵌套选择，例如：
+  `find`方法与 `find_all`方法类似，只不过只能匹配第一个满足条件的节点。此外还有一些其他选择方法，这与前面是对应的：`find_parent`，`find_parents`，`find_next_sibling`，`find_next_siblings`，`find_previous_sibling`，`find_previous_siblings`，这些方法一般会结合嵌套选择，例如：
 
   ```py
   print(
@@ -954,9 +954,9 @@ print(soup.prettify())
   )
   ```
 
-- CSS选择器
+- CSS 选择器
 
-  Web开发中经常会用到CSS选择器，`BeautifulSoup`库也提供了`select`方法来实现此功能，匹配的对象仍然是Tag类型：
+  Web 开发中经常会用到 CSS 选择器，`BeautifulSoup`库也提供了 `select`方法来实现此功能，匹配的对象仍然是 Tag 类型：
 
   ```py
   print(soup.select('.panel-body'))
@@ -966,15 +966,15 @@ print(soup.prettify())
 
 #### 提取信息
 
-经过选择器选择的结果都是Tag类型，Tag具有一些属性，调用该属性可以获得相应信息。
+经过选择器选择的结果都是 Tag 类型，Tag 具有一些属性，调用该属性可以获得相应信息。
 
 - 获取名称
 
-  调用`name`属性获得节点名称
+  调用 `name`属性获得节点名称
 
 - 获取属性
 
-  调用`attrs`属性获得节点的属性
+  调用 `attrs`属性获得节点的属性
 
   ```py
   print(soup.select(class_='panel-body').attrs)
@@ -982,14 +982,14 @@ print(soup.prettify())
   print(soup.select(class_='panel-body').attrs['class'])
   # 获取指定的属性内容
   print(soup.select(class_='panel-body')['class'])
-  # 这种写法也可以
+  # 同上，另一种写法
   ```
 
-  值得注意的是，某些属性的值是唯一的，于是返回结果就是单个字符串。但对于`class`属性，一个元素可能同时拥有多个class，所以返回的就是列表（尽管它们目前可能只指定了一个class）。
+  值得注意的是，某些属性的值是唯一的，于是返回结果就是单个字符串。但对于 `class`属性，一个元素可能同时拥有多个 class，所以返回的就是列表（尽管它们目前可能只指定了一个 class）。
 
 - 获取内容
 
-  调用`string`属性，或者使用`get_text()`。
+  调用 `string`属性，或者使用 `get_text()`。
 
   ```py
   for element in soup.select('#list-1 .element'):
@@ -998,7 +998,8 @@ print(soup.prettify())
 
 ### Pyquery
 
-Beautiful Soup对于CSS选择器的功能没有那么强大，如果对于CSS选择器更熟悉的话，`pyquery`是个更好的选择。
+Beautiful Soup 对于 CSS 选择器的功能没有那么强大，如果对于 CSS 选择器更熟悉的话，`pyquery`是个更好的选择。
 
+## 数据的存储
 
-
+## Ajax 数据爬取
