@@ -208,11 +208,12 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   ==贪婪匹配==是正则表达中另外一个值得注意的点，前面写过，`{m, n}`匹配个数最少 m 个，最多 n 个，即可以匹配 m 个数字也可以匹配 n 个数字，不过当有 n 个数字的时候，优先匹配的是 n 个数字，这是因为默认为贪婪模式，即尽可能的匹配更多字符，而要使用==非贪婪==模式，需要在表达式后面加上 `?`号，即 `{m,n}?`。此外，我们常常会使用 `.*`进行通用匹配（同时匹配多个任意字符），如果要实现非贪婪匹配，需要使用 `.*?`。
 
   ```py
+  import re
   content='Hello 1234567 World_This is a Regex Demo'
   result=re.match('^He.*(\d+).*Demo$', content)
   print(result.group(1))
   # 此时由于贪婪匹配，分组引用后的只有数字7
-  
+
   # 若使用非贪婪匹配
   result=re.match('^He.*?(\d).*?Demo$')
   ```
@@ -233,6 +234,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   - `re.match()`：match 匹配方法需要向它传入要匹配的字符串以及正则表达式。它会尝试从字符串的起始位置开始匹配正则表达式，如果匹配，就返回匹配成功的结果，如果不匹配，就返回 None。如果正则表达式中使用了分组引用，那么可以用 `xx.group(a)`来进行提取。
 
     ```py
+    import re
     content='Extra String Hello 1234567 World_This is a Regex Demo'
     result=re.search('He.*?(\d+).*Demo$', content)
     print(result)
@@ -518,7 +520,7 @@ import requests as r
      ```py
      import requests as r
      resp=r.get('https://scrape.center/favicon.ico')
-     
+
      with open('images/favicon.ico', 'wb') as f:
        f.write(resp.content)
 
@@ -526,7 +528,7 @@ import requests as r
      files={
        'icon':'images/favicon.ico'	# the address
      }
-    
+
      resp=r.post('https://www.httpbin.org/post', files=files)
      print(resp.text)
      ```
@@ -576,7 +578,7 @@ resp=r.get(url=base_url, params=params)
    headers={
      'Cookie':cookie
    }
-   
+
    resp=r.get('https://github.com/', headers=headers)
    print(resp.text)
    ```
@@ -659,11 +661,11 @@ resp=r.get('https://ssr2.scrape.center/', verify=False)
 print(resp.status_code)
 ```
 
-当然我们还可以指定一个本地证书用作客户端证书，这可以是单个文件（包含密钥和证书）或一个包含两个文件路径的元组，通过`cert`参数传入。
+当然我们还可以指定一个本地证书用作客户端证书，这可以是单个文件（包含密钥和证书）或一个包含两个文件路径的元组，通过 `cert`参数传入。
 
 #### 超时设置
 
-如果本机网络状况不好或者服务器网络响应太慢甚至无响应时，我们可能会等待特别久的时间才能接受到响应，甚至到最后因为接受不到响应而报错。为了防止服务器不能及时响应，应该设置一个超市时间，如果超过这个时间还没有得到响应，就报错。使用`timeout`参数。
+如果本机网络状况不好或者服务器网络响应太慢甚至无响应时，我们可能会等待特别久的时间才能接受到响应，甚至到最后因为接受不到响应而报错。为了防止服务器不能及时响应，应该设置一个超市时间，如果超过这个时间还没有得到响应，就报错。使用 `timeout`参数。
 
 ```py
 import requests as r
@@ -672,19 +674,19 @@ resp=r.get('https://www.httpbin.org/get', timeout=1)
 print(r.status_code)
 ```
 
-事实上，请求分为两个阶段，连接（connect）和读取（read），上述设置方式是用作连接和读取的`timeout`总和，如果想要分开单独设置，可以传入一个元组。
+事实上，请求分为两个阶段，连接（connect）和读取（read），上述设置方式是用作连接和读取的 `timeout`总和，如果想要分开单独设置，可以传入一个元组。
 
 ```py
 resp=r.get('https://www.httpbin.org/get', timeout=(3, 50))
 ```
 
-当然，也可以选择永久等待------直接将`timeout`设置为`None`，这和不设置`timeout`参数是一样的，因为默认值就是`None`。
+当然，也可以选择永久等待------直接将 `timeout`设置为 `None`，这和不设置 `timeout`参数是一样的，因为默认值就是 `None`。
 
 #### 身份认证
 
-在访问启用了基本身份认证的网站时，首先会弹出一个认证窗口，这时我们就要先模拟登陆进行身份认证，然后再进行后续操作，同时身份认证常常会结合Session维持。
+在访问启用了基本身份认证的网站时，首先会弹出一个认证窗口，这时我们就要先模拟登陆进行身份认证，然后再进行后续操作，同时身份认证常常会结合 Session 维持。
 
-requests库提供了简单的写法，如果`auth`参数直接传入一个元组，则默认使用`HTTPBasicAuth`这个类来验证：
+requests 库提供了简单的写法，如果 `auth`参数直接传入一个元组，则默认使用 `HTTPBasicAuth`这个类来验证：
 
 ```py
 import requests as r
@@ -699,7 +701,7 @@ print(resp.status_code)
 # 身份认证成功，状态码返回200
 ```
 
-此外，requests库还提供了其他认证方式，如`OAuth`认证，使用`OAuth1`认证的示例方法如下：
+此外，requests 库还提供了其他认证方式，如 `OAuth`认证，使用 `OAuth1`认证的示例方法如下：
 
 ```py
 import requests as r
@@ -711,7 +713,7 @@ resp=r.get(url=url, auth=auth)
 
 #### 代理设置
 
-某些网站在测试的时候请求几次，都能正常获取内容，但是一旦开始大规模爬取，面对大规模且频繁的请求时，这些网站就可能弹出验证码，或者跳转到登录认证页面，更甚者可能会直接封禁客户端的IP，导致在一定时间段无法访问，为了放置这种情况发生，需要设置代理来解决这个问题，使用`proxies`参数，向其传递一个代理字典来设置代理。这个字典指定了不同协议下的代理服务器地址
+某些网站在测试的时候请求几次，都能正常获取内容，但是一旦开始大规模爬取，面对大规模且频繁的请求时，这些网站就可能弹出验证码，或者跳转到登录认证页面，更甚者可能会直接封禁客户端的 IP，导致在一定时间段无法访问，为了放置这种情况发生，需要设置代理来解决这个问题，使用 `proxies`参数，向其传递一个代理字典来设置代理。这个字典指定了不同协议下的代理服务器地址
 
 ```py
 import requests as r
@@ -724,11 +726,11 @@ resp=r.get('https://www.httpbin.org/get', proxies=proxies, timeout=10)
 print(resp.status_code)
 ```
 
-若代理需要身份验证，可以对服务器的地址进行改写，大概是：`http://user:password@host:port1的形式。
+若代理需要身份验证，可以对服务器的地址进行改写，大概是：`http://user:password@host:port1 的形式。
 
-除了基本的HTTP代理外，requests 库还支持`SOCKS`协议的代理。
+除了基本的 HTTP 代理外，requests 库还支持 `SOCKS`协议的代理。
 
-SOCKS是一种网络协议，用于在客户端和服务器之间通过一个代理服务器进行通信。它主要用于处理通过防火墙的请求，提供了一种在网络安全策略受限的环境中绕过防火墙的方法。SOCKS协议的关键特点是它可以透明地处理各种类型的网络流量，不仅限于HTTP流量。
+SOCKS 是一种网络协议，用于在客户端和服务器之间通过一个代理服务器进行通信。它主要用于处理通过防火墙的请求，提供了一种在网络安全策略受限的环境中绕过防火墙的方法。SOCKS 协议的关键特点是它可以透明地处理各种类型的网络流量，不仅限于 HTTP 流量。
 
 ```py
 proxies={
@@ -739,8 +741,6 @@ proxies={
 resp=r.get('https://www.http.org/get', proxies=proxies)
 print(resp.status_code)
 ```
-
-
 
 ## 解析和处理网页数据
 
@@ -882,7 +882,7 @@ and they lived at the bottom of a well.</p>
 '''
 
 from bs4 import BeautifulSoup
-soup=Beautiful(html, 'lxml')
+soup=BeautifulSoup(html, 'lxml')
 # 指定解析对象和解析器类型
 ```
 
