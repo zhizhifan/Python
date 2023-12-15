@@ -849,7 +849,7 @@ print(text.decode('utf-8'))
 
 2. 善用 XPath 轴
 
-   注意轴的使用方法
+   注意 XPath 轴的使用方法，要在轴名称的后面紧跟 `::`符号：
 
    ```py
    result=html.xpath('//li[1]/following-sibling::*/attribute::*')
