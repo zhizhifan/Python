@@ -112,9 +112,9 @@ HTTP 协议是**可扩展的**，这是通过头部体现的。HTTP 头部包括
 
 由于 HTTP 协议本身是无状态的，即每次请求和响应都是独立的。如果每次访问都要额外传递一些重复的请求才能获取后续响应，那未免太浪费资源了。所以为了在用户访问过程中维持状态（如登录信息），出现了两种技术：Session 和 Cookie。
 
-**Session（会话）**指的是客户端和服务器之间进行的一连串的交互过程。这个过程可以由多个 HTTP 请求和响应组成。**Session 对象**是在服务器端实现的一个程序实体，用于存储特定用户**Session（会话）**所需的**属性及配置信息**。它是一个具体的数据结构，比如一个对象或字典，在服务器的内存中维护用户会话的状态。Cookie 是某些网站为了鉴别用户身份，进行 Session 跟踪而存储在用户本地终端上的数据。
+**Session（会话）**指的是客户端和服务器之间进行的一连串的交互过程。这个过程可以由多个 HTTP 请求和响应组成。**Session 对象**是在服务器端实现的一个程序实体，用于存储特定用户**Session（会话）**所需的**属性及配置信息**。它是一个具体的数据结构，比如一个对象或字典，在服务器的内存中维护用户会话的状态。Cookie 是某些网站为了鉴别用户身份，进行 Session 跟踪而**存储在用户本地终端上**的数据。
 
-当一个用户首次向应用程序发起请求而服务器上尚未为该用户建立 Session 时，服务器会自动创建一个新的 Session 对象，并生成一个唯一的 Session ID。这个 Session ID 随后被存储在一个 Cookie 中，并通过 HTTP 响应发送给用户的浏览器。用户的浏览器接收并保存这个 Cookie，从而在随后的请求中，Cookie 会被自动地发送回服务器。服务器通过这个 Session ID 定位到相应的 Session 对象，利用其中的信息来维护用户的状态和数据。Session 对象在一定时间内没有活动（即不活跃）或通过特定操作（如用户登出）被显式地终止时，会被服务器标记为过期并最终被删除。这种机制允许服务器在 HTTP 的无状态环境中维护跨多个请求的用户状态，从而提供连续的用户体验。
+当一个用户首次向应用程序发起请求而服务器上尚未为该用户建立 Session 时，服务器会自动创建一个新的 Session 对象，并生成一个唯一的 Session ID。**这个 Session ID 随后被存储在一个 Cookie 中**，并通过 HTTP 响应（带有Set-Cookie响应头）发送给用户的浏览器。用户的浏览器接收并保存这个 Cookie，从而在随后的请求中，Cookie 会被自动地发送回服务器。服务器通过Cookie中保存的Session ID 定位到相应的 Session 对象，利用其中的信息来维护用户的状态和数据。Session 对象在一定时间内没有活动（即不活跃）或通过特定操作（如用户登出）被显式地终止时，会被服务器标记为过期并最终被删除。这种机制允许服务器在 HTTP 的无状态环境中维护跨多个请求的用户状态，从而提供连续的用户体验。
 
 一个 Cookie 中可以有多个 cookies，我们可以打开 dev tool 进行查看，==一个 cookie 条目==会拥有以下内容：
 
@@ -213,7 +213,7 @@ HTML、CSS 和 JavaScript 是构成网页的三大核心技术。我们爬虫就
   result=re.match('^He.*(\d+).*Demo$', content)
   print(result.group(1))
   # 此时由于贪婪匹配，分组引用后的只有数字7
-
+  
   # 若使用非贪婪匹配
   result=re.match('^He.*?(\d).*?Demo$')
   ```
@@ -520,7 +520,7 @@ import requests as r
      ```py
      import requests as r
      resp=r.get('https://scrape.center/favicon.ico')
-
+     
      with open('images/favicon.ico', 'wb') as f:
        f.write(resp.content)
 
@@ -528,7 +528,7 @@ import requests as r
      files={
        'icon':'images/favicon.ico'	# the address
      }
-
+    
      resp=r.post('https://www.httpbin.org/post', files=files)
      print(resp.text)
      ```
@@ -578,7 +578,7 @@ resp=r.get(url=base_url, params=params)
    headers={
      'Cookie':cookie
    }
-
+   
    resp=r.get('https://github.com/', headers=headers)
    print(resp.text)
    ```
