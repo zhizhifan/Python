@@ -7,12 +7,12 @@ class QuotesSpider(scrapy.Spider):
     start_urls = ["https://quotes.toscrape.com"]
 
     def parse(self, response):
-        pass
         quotes = response.css('.quote')
         #! 结果返回的是一个列表，存储了每个符合条件的Selector对象。
 
         for quote in quotes:
             item = QuoteItem()
+            # 实例化item对象
             item['text'] = quote.css('.text::text').extract_first()
             #! 利用::text获取正文，不包含标签等其他信息，但仍然是Selector对象。
             #! 用extract()方法进一步提取Selector对象中的内容

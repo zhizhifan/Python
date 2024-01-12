@@ -1,6 +1,6 @@
 
 
-## 面向对象
+## 面向对象编程
 
 ### 面向对象和面向过程
 
@@ -14,30 +14,75 @@
 
 两者相辅相成，在解决实际问题时，通过面向对象方式便于我们从宏观上把握事物之间的复杂关系，具体到微观操作时，则仍然使用面向过程的方式来处理。
 
+### 面向对象编程的特征
+
+#### 封装
+
+封装是把数据（属性）和操作数据的方法（行为）捆绑在一起形成一个整体（即对象）。在封装中，数据被隐藏，不允许外部直接访问，仅允许通过对象提供的方法来访问和修改这些数据。
+
+#### 继承
+
+继承实现了代码的重用性和可扩展性。继承允许一个类（子类）继承另一个类（父类）的属性和方法。子类可以重用父类的代码，这有助于减少重复代码，并且子类可以**扩展或修改**继承的数据和行为。
+
+#### 多态
+
 ### 类和对象
 
-类（Class）和对象（Object）是面向对象编程中的两个基本概念，它们之间有着密切但明确的区别：
-
-类是一种抽象的模板，用于描述**一组具有相同属性（数据元素）和行为（方法或函数）的对象**。
-特点：类定义了对象的数据结构和可以对这些数据执行的操作。它只是一个规范或蓝图，本身不占用内存。
-用途：类用于创建对象实例。它规定了对象的类型和可执行的操作。
+类（Class）和对象（Object）是面向对象编程中的两个基本概念，它们之间有着密切但明确的区别。类是一种抽象的模板，用于描述**一组具有相同属性（即数据元素）和行为（即方法或函数）的对象**。也就是说，在我们创建对象之前，首先要创建一个类，因为它规定了对象的类型和可执行的操作。
 
 #### 类的组成
-属性（Attributes）:
 
-定义：属性是类中定义的（方法外的）变量，用于存储对象的状态信息。它们也被称为数据成员、字段或状态。
-特点：每个对象（类的实例）都拥有自己的属性值集，这些值定义了对象的特征（例如，一个汽车对象的属性可能包括品牌、颜色、型号等）。
+类的创建需要先定义一个类名，名称必须以大写字母开头，下面是一个简单的例子：
 
-方法（Methods）:
+```{python}
+class HttpbinSpider:
+  # 属性
+  name = "httpbin"
+  allowed_domains = ["www.httpbin.org"]
+  start_urls = ["https://www.httpbin.org/get"]
 
-定义：方法是类中定义的函数，用于描述对象可以执行的操作。它们也被称为成员函数或行为。
-特点：方法通常操作对象的内部属性，并且可以实现对象间的交互。例如，汽车对象可能有启动（start）和停止（stop）的方法。
-构造函数（Constructors）:
+  # 方法
+  def parse(self, response):
+    pass
 
-定义：构造函数是一种特殊的方法，用于在创建对象时初始化对象的属性。
+  def printname(self):
+    print(self.name)
+```
 
-特点：构造函数通常与类名相同，并且可以有不同的参数，以支持不同方式的初始化。
-方法的参数，局部变量.实例属性
+##### 属性（Attributes）:
+
+属性是类中定义的（方法外的）变量，用于存储对象的状态信息。它们也被称为数据成员、字段或状态。
+
+##### 方法（Methods）:
+
+方法是类中定义的函数，用于描述对象可以执行的操作。它们也被称为成员函数或行为。方法中的第一个默认参数必须为`self`，即对类实例自身的引用。它帮助方法区分是哪个对象调用了它。
+
+```{python}
+class Classdemo:
+  def testdemo():
+    print("Hello world")
+
+test = Classdemo()
+test.testdemo()
+# 报错
+```
+
+```{python}
+class Getself:
+  def get_self(self):
+    print(self)
+
+test = Getself()
+test.get_self()
+print(test)
+# 进一步验证方法中传入的就是实例对象本身
+```
+
+##### 构造函数（Constructors）:
+
+构造函数`__init__()`是一种特殊的方法，用于在创建对象时初始化对象的属性。构造函数可以有不同的参数，以支持不同方式的初始化。
+
+
 ```{python}
 def __init__(self, age)：
   self.age=age
@@ -55,18 +100,108 @@ def __init__(self, age)：
 定义：静态成员是属于类本身而非类的任何特定对象的属性或方法。
 特点：静态成员可以在不创建类的实例的情况下访问，常用于存储类级别的信息。
 
-对象是根据类定义创建的实体。每个对象都有自己的属性和行为。
-特点：对象是类的具体实例，占用内存空间。每个对象都拥有独立的属性值，即使它们来自同一个类。
-用途：对象是程序执行时操作的实体。程序中的所有操作都是通过调用对象的方法或访问其属性来实现的。
-关系和区别:
+#### 类的继承
 
-类是对象的模板：可以把类理解为制造对象的“模具”，而对象是这个模具制造出来的具体“产品”。
-独立性：同一个类可以用来创建多个对象，每个对象都有自己独立的属性集合。
-内存占用：类本身不占用内存，而对象在创建时占用内存。
-例如，在一个类“Car”中，你可以定义属性如“color”和“brand”，以及方法如“drive()”和“stop()”。根据这个类，你可以创建多个对象，如“myCar”和“yourCar”，每个对象都可以有不同的颜色和品牌，但都遵循“Car”类中定义的结构和行为。
-
-理解类和对象之间的区别对于掌握面向对象编程非常重要。类提供了创建和管理对象的框架，而对象是在程序运行时实际操作的实体。
+根据继承性的特征，我们根据父类创建一个子类：
 
 ```{python}
+class Fatherclass:
+  var = 25
+  def printtext(self):
+    print('Hello World')
+
+
+class Childclass(Fatherclass):  # 在括号中声明父类，表明继承自父类
+  var = 30                      # 修改属性
+  def printvar(self):           # 扩展方法
+    print(self.var)
+
+# obj = Childclass()
+# obj.printtext()
+# obj.printvar()
+
+class Fatherclass2:
+  var = 30
+  def printtext(self):
+    print('Another Greet')
+  def printvar(self):
+    print(self.var)
+
+class Multiclass(Fatherclass, Fatherclass2):
+  pass
+
+# multichild = Multiclass()     # 多重继承，顺序从左至右
+# print(multichild.var)         # 不重复的属性和方法进会进行扩展
+# multichild.printtext()        # 重复的属性方法则只采用第一次出现的那个
+# multichild.printvar()
+```
+
+判断某类是否是另一类的子类，用`issubclass()`：
+
+```{python}
+print(issubclass(Childclass, Fatherclass))
+```
+
+#### 类的组合
+
+#### 类的重写
+
+
+#### 对象实例化
+
+对象是根据类定义创建的具体实例。每个对象都有自己的属性和行为。Python中处处是对象，例如：
+
+```{python}
+age = 25
+name = "zhizhifan"
+print(type(age))
+print(type(name))
+# age和name分别是整数和字符串类的实例对象
+```
+
+仍以上述的`HttpbinSpider`类为例：
+
+```{python}
+obj1 = HttpbinSpider()
+# 这样我们就实例化了一个obj1对象，它拥有类中包含的所有属性和方法
+
+print(obj1.name)
+obj1.printname()
+print(type(obj1))
+```
+
+判断对象是否是某个类的实例用`isinstance()`：
+
+```{python}
+print(isinstance(obj, Childclass))
+print(isinstance(obj, Fatherclass))
+```
+
+#### 对象与类的绑定
+
+之前介绍过，类方法中的第一个参数必须为self，这其实是传入了实例对象本身。但同时这也会在程序中将对象与特定的属性和方法相关联，这就是绑定。我们可以对绑定对象的属性进行**添加和修改**。
+
+```{python}
+class Fatherclass:
+  var = 25
+  def printtext(self):
+    print(self.var)
+
+  def set_var(self, v):
+    var = v
+
+Child = Fatherclass()
+Child.printtext()           # 继承父类属性（self.var=25）
+# print(Child.__dict__)
+
+Child.var=20                # 改变对象属性
+Child.printtext()           # 绑定对象的属性（self.var）变成20
+
+Child.var2 = 30             # 添加新属性
+print(Child.__dict__)       # 通过__dict__查看对象所有属性，返回字典
+
+Child.set_var(100)
+print(Child.var)            # 由于没有使用self进行绑定，对象的属性不会发生改变
+print(Fatherclass.var)      # 也不会改变类的对应属性值，只是创建了局部变量var
 
 ```
